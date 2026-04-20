@@ -1,0 +1,10 @@
+Ishlatish (misollar)
+HTTP + port (Windows waitress 8001 kabi):
+python manage.py change_ip 12.34.56.78 --scheme http --port 8001
+
+HTTPS (domain bilan, port kerak bo‘lmasa):
+python manage.py change_ip my-feel.uz --scheme https
+
+
+Faqat chiqarib bersin (yozmasin):
+python manage.py change_ip 12.34.56.78 --scheme http --port 800
