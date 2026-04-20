@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} | Xotira topilmadi{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16 text-center">
+    <p class="text-4xl mb-4" aria-hidden="true">🍃</p>
+    <h1 class="text-lg font-semibold text-slate-800 mb-2">Bu xotira topilmadi</h1>
+    <p class="text-sm text-slate-500 mb-6">O‘chirilgan yoki boshqa akkauntga tegishli bo‘lishi mumkin.</p>
+    <a href="{% url 'profile' username=profile_user.username %}" class="inline-flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700">
+        <i class="bi bi-arrow-left"></i> Profilga qaytish
+    </a>
+</div>
+{% endblock %}

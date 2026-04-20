@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} | Hissiyot yuklash{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{% url 'profile' username=user.username %}" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+        <h1 class="hy-form-header__title">Hissiyot yuklash</h1>
+        <span style="width:34px" aria-hidden="true"></span>
+    </div>
+</div>
+
+<div class="hy-form-page">
+    <form method="post" class="hy-form-card" novalidate data-autosave="{% if compose_autosave_enabled %}1{% else %}0{% endif %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="compose-action" value="{% if is_edit %}update{% else %}create{% endif %}">
+        <input type="hidden" name="post_id" value="{{ edit_post_id|default:'' }}">
+
+        {% if form.non_field_errors %}
+        <div class="hy-msg hy-msg--err" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_title">Mavzu</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="hy-field-error">{{ form.title.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group">
+            <span class="hy-form-label" id="hy-mood-label">Kayfiyat</span>
+            {{ form.mood }}
+            <div class="hy-mood-chips" role="radiogroup" aria-labelledby="hy-mood-label">
+                {% for k in kayfiyat_primary %}
+                <button type="button" class="hy-mood-chip" data-mood-slug="{{ k.slug }}">
+                    <span class="hy-mood-chip__emoji" aria-hidden="true">{{ k.emoji }}</span>
+                    <span>{{ k.name }}</span>
+                </button>
+                {% endfor %}
+                {% for k in kayfiyat_extras %}
+                <button type="button" class="hy-mood-chip hy-mood-chip--sub" data-mood-slug="{{ k.slug }}">
+                    <span class="hy-mood-chip__emoji" aria-hidden="true">{{ k.emoji }}</span>
+                    <span>{{ k.name }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            {% if form.mood.errors %}<div class="hy-field-error">{{ form.mood.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group hy-form-row2">
+            <div>
+                <label class="hy-form-label" for="id_hashtag">Hashtag</label>
+                {{ form.hashtag }}
+                {% if form.hashtag.errors %}<div class="hy-field-error">{{ form.hashtag.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="hy-form-label" for="id_visibility">Ko‘rinish</label>
+                {{ form.visibility }}
+                {% if form.visibility.errors %}<div class="hy-field-error">{{ form.visibility.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        {% if not is_edit %}
+        <div class="hy-form-group">
+            <span class="hy-form-label">Hammualliflar (yaqinlardan, 3 tagacha)</span>
+            <div class="hy-helptext">Tanlanganlar bildirishnoma orqali tasdiqlaguncha profilingizda ko‘rinmaydi.</div>
+            {{ form.collaborators }}
+            {% if form.collaborators.errors %}<div class="hy-field-error">{{ form.collaborators.errors }}</div>{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_body">Matn</label>
+            <div class="hy-textarea-wrap">
+                {{ form.body }}
+                <span class="hy-counter" id="hy-char-counter" aria-live="polite">0 / 255</span>
+            </div>
+            {% if form.body.errors %}<div class="hy-field-error">{{ form.body.errors }}</div>{% endif %}
+        </div>
+
+        <button type="submit" class="hy-btn-primary-lg" onclick="document.getElementById('compose-action').value='{% if is_edit %}update{% else %}create{% endif %}'">{% if is_edit %}Saqlash{% else %}Nashr{% endif %}</button>
+        <a href="{% url 'profile' username=user.username %}" class="hy-btn-danger-outline" style="border-color:var(--hy-border);background:var(--hy-bg-secondary);color:var(--hy-text);margin-top:10px">Bekor qilish</a>
+        <button type="submit" class="hy-btn-danger-outline" style="margin-top:10px" onclick="document.getElementById('compose-action').value='{% if is_edit %}draft_update{% else %}draft{% endif %}'">Qoralama</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var form = document.querySelector('form.hy-form-card');
+        if (!form) return;
+        if (form.getAttribute('data-autosave') !== '1') return;
+        var userId = "{{ user.id|escapejs }}";
+        var key = "mf3:composeDraft:" + userId;
+        var title = document.getElementById('id_title');
+        var body = document.getElementById('id_body');
+        var hashtag = document.getElementById('id_hashtag');
+        var mood = document.getElementById('id_mood');
+        var vis = document.getElementById('id_visibility');
+
+        function nowMs() { return Date.now ? Date.now() : (new Date()).getTime(); }
+        function readDraft() {
+            try { return JSON.parse(localStorage.getItem(key) || "null"); } catch (e) { return null; }
+        }
+        function writeDraft(obj) {
+            try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) {}
+        }
+        function hasAny() {
+            return !!((title && title.value.trim()) || (body && body.value.trim()) || (hashtag && hashtag.value.trim()));
+        }
+        function snapshot() {
+            return {
+                v: 1,
+                t: title ? title.value : "",
+                b: body ? body.value : "",
+                h: hashtag ? hashtag.value : "",
+                m: mood ? mood.value : "",
+                vis: vis ? vis.value : "",
+                ts: nowMs(),
+                edit: "{{ is_edit|yesno:'1,0' }}",
+                post_id: "{{ edit_post_id|default:''|escapejs }}",
+            };
+        }
+        var lastSave = 0;
+        var timer = null;
+        function schedule() {
+            if (!hasAny()) return;
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                var s = snapshot();
+                writeDraft(s);
+                lastSave = nowMs();
+            }, 450);
+        }
+
+        // Restore (faqat yangi postda va maydonlar bo‘sh bo‘lsa)
+        var d = readDraft();
+        var isEdit = "{{ is_edit|yesno:'1,0' }}" === "1";
+        if (!isEdit && d && d.v === 1 && (!title.value && !body.value)) {
+            title.value = d.t || "";
+            body.value = d.b || "";
+            if (hashtag) hashtag.value = d.h || "";
+            if (mood && d.m) mood.value = d.m;
+            if (vis && d.vis !== "") vis.value = d.vis;
+            try { updateCharCount(body); } catch (e) {}
+            try { hySyncMood(); } catch (e) {}
+        }
+
+        ['input', 'change'].forEach(function (ev) {
+            form.addEventListener(ev, function (e) {
+                if (!e.target) return;
+                if (e.target.id === 'compose-action') return;
+                schedule();
+            }, true);
+        });
+        form.addEventListener('submit', function () {
+            // Submit ketganda draftni tozalaymiz (server xato bersa keyin yana yozib ketadi)
+            try { localStorage.removeItem(key); } catch (e) {}
+        });
+    })();
+
+    function hySelectMood(slug) {
+        var mo = document.getElementById('id_mood');
+        if (mo) mo.value = slug || '';
+        document.querySelectorAll('.hy-mood-chip').forEach(function (b) {
+            var s = b.getAttribute('data-mood-slug');
+            b.classList.toggle('is-active', s && s === (slug || ''));
+        });
+    }
+    function hySyncMood() {
+        var mo = document.getElementById('id_mood');
+        hySelectMood(mo ? mo.value : '');
+    }
+    function updateCharCount(el) {
+        var out = document.getElementById('hy-char-counter');
+        if (!out || !el) return;
+        var n = (el.value || '').length;
+        var max = el.getAttribute('maxlength') || 255;
+        out.textContent = n + ' / ' + max;
+        out.style.color = n >= max ? '#dc2626' : 'var(--hy-text-muted)';
+    }
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.hy-mood-chip[data-mood-slug]');
+        if (btn) hySelectMood(btn.getAttribute('data-mood-slug'));
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var mo = document.getElementById('id_mood');
+        if (mo && !mo.value) mo.value = "{{ default_mood_slug|default:''|escapejs }}";
+        hySyncMood();
+        var ta = document.getElementById('id_body');
+        if (ta) updateCharCount(ta);
+    });
+</script>
+{% endblock %}
+

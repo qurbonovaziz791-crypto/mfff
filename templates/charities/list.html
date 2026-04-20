@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static %}
+{% load charity_extras %}
+
+{% block title %}Hayriyalar{% endblock %}
+
+{% block head_meta %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hayriyalar | MYFEEL">
+<meta property="og:url" content="{{ charity_list_share_url }}">
+<meta property="og:description" content="Tekshirilgan hayriya holatlari: tibbiy, ta’lim, uy-joy va boshqa yo‘nalishlar bo‘yicha.">
+{% endblock %}
+
+{% block content %}
+<div class="hy-charity-page">
+    <header class="hy-charity-page__intro hy-charity-page__intro--compact">
+        <h1 class="hy-charity-page__title">Hayriyalar</h1>
+        {% if user.is_superuser %}
+        <a href="{% url 'charity_create' %}" class="hy-charity-admin-bar__btn hy-charity-admin-bar__btn--inline" title="Hayriya qo‘shish">+</a>
+        {% endif %}
+    </header>
+
+    <details
+        class="hy-charity-filter-drawer"
+        {% if q or filter_region or filter_category or hide_closed or sort != 'new' %}open{% endif %}
+    >
+        <summary class="hy-charity-filter-drawer__summary">
+            <span class="hy-charity-filter-drawer__left">
+                <span class="hy-charity-filter-drawer__title">Filtrlash</span>
+                {% if filter_region or filter_category or hide_closed or sort != 'new' %}
+                <span class="hy-charity-filter-drawer__dot" aria-hidden="true"></span>
+                {% endif %}
+            </span>
+        </summary>
+        <div class="hy-charity-filter-drawer__panel">
+            <form class="hy-charity-filters" method="get" action="{% url 'charity_list' %}" aria-label="Qidiruv va filtrlash">
+                <div class="hy-charity-filters__grid">
+                    <div class="hy-charity-filters__field hy-charity-filters__field--q">
+                        <label class="hy-charity-filters__label" for="id_f_q">Qidiruv</label>
+                        <input
+                            class="hy-charity-filters__input"
+                            id="id_f_q"
+                            name="q"
+                            type="search"
+                            value="{{ q|default:'' }}"
+                            placeholder="Sarlavha, tuman, manzil…"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div class="hy-charity-filters__field">
+                        <label class="hy-charity-filters__label" for="id_f_region">Viloyat</label>
+                        <div class="hy-charity-filters__select-wrap">
+                            <select class="hy-charity-filters__select" id="id_f_region" name="region">
+                                <option value="">Hammasi</option>
+                                {% for val, label in region_choices %}
+                                <option value="{{ val }}" {% if filter_region == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="hy-charity-filters__field">
+                        <label class="hy-charity-filters__label" for="id_f_cat">Kategoriya</label>
+                        <div class="hy-charity-filters__select-wrap">
+                            <select class="hy-charity-filters__select" id="id_f_cat" name="category">
+                                <option value="">Hammasi</option>
+                                {% for val, label in category_choices %}
+                                <option value="{{ val }}" {% if filter_category == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="hy-charity-filters__field">
+                        <label class="hy-charity-filters__label" for="id_f_sort">Tartib</label>
+                        <div class="hy-charity-filters__select-wrap">
+                            <select class="hy-charity-filters__select" id="id_f_sort" name="sort">
+                                <option value="new" {% if sort == "new" %}selected{% endif %}>Yangi avval</option>
+                                <option value="old" {% if sort == "old" %}selected{% endif %}>Eski avval</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="hy-charity-filters__footer">
+                    <label class="hy-charity-filters__check-row">
+                        <input class="hy-charity-filters__checkbox" type="checkbox" name="hide_closed" value="1" {% if hide_closed %}checked{% endif %}>
+                        <span>Yopilganlarni yashirish</span>
+                    </label>
+                    <div class="hy-charity-filters__actions">
+                        <button type="submit" class="hy-charity-filters__submit">Qo‘llash</button>
+                        <a href="{% url 'charity_list' %}" class="hy-charity-filters__reset">Tozalash</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </details>
+
+    {% if user.is_superuser and draft_cases %}
+    <details class="hy-charity-drafts-drawer">
+        <summary class="hy-charity-drafts-drawer__summary">Qoralama <span class="hy-charity-drafts-drawer__count">{{ draft_cases|length }}</span></summary>
+        <ul class="hy-charity-drafts__list hy-charity-drafts__list--compact">
+            {% for d in draft_cases %}
+            <li>
+                <a href="{{ d.get_absolute_url }}">{{ d.title }}</a>
+                <span class="hy-charity-drafts__meta">{{ d.get_status_display }} · {{ d.get_region_display }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endif %}
+
+    <div class="hy-charity-reels" aria-label="Hayriyalar">
+        {% for case in cases %}
+        <article class="hy-charity-reel" id="hayriya-{{ case.slug }}">
+            <a href="{{ case.get_absolute_url }}" class="hy-charity-reel__link">
+                <div class="hy-charity-reel__media">
+                    {% if case.video %}
+                    <video
+                        class="hy-charity-reel__video"
+                        muted
+                        playsinline
+                        loop
+                        preload="metadata"
+                        {% if case.poster %}poster="{{ case.poster.url }}"{% endif %}
+                        aria-hidden="true"
+                    >
+                        <source src="{{ case.video.url }}" type="video/mp4">
+                    </video>
+                    {% elif case.poster %}
+                    <img src="{{ case.poster.url }}" alt="" class="hy-charity-reel__img" loading="lazy" decoding="async">
+                    {% else %}
+                    <div class="hy-charity-reel__placeholder" aria-hidden="true">
+                        {% include "includes/hybrid_icon.html" with name="gift" %}
+                    </div>
+                    {% endif %}
+                    <span class="hy-charity-reel__shade" aria-hidden="true"></span>
+                    {% if case.goal_amount %}
+                    <div class="hy-charity-reel__progress" aria-hidden="true">
+                        <span class="hy-charity-reel__progress-fill" style="width: {{ case.collection_percent|default:0 }}%"></span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="hy-charity-reel__overlay">
+                    <div class="hy-charity-reel__tags">
+                        <span class="hy-charity-reel__pill hy-charity-reel__pill--cat">{{ case.get_category_display }}</span>
+                        {% if case.status == "closed" %}
+                        <span class="hy-charity-reel__pill hy-charity-reel__pill--closed">Yopilgan</span>
+                        {% endif %}
+                        {% if case.is_publicly_verified %}
+                        <span class="hy-charity-reel__pill hy-charity-reel__pill--ok">Tekshirilgan</span>
+                        {% endif %}
+                    </div>
+                    <span class="hy-charity-reel__loc">{{ case.get_region_display }} · {{ case.district }}</span>
+                    <h2 class="hy-charity-reel__headline">{{ case.title }}</h2>
+                    <p class="hy-charity-reel__teaser">{{ case.teaser }}</p>
+                    {% if case.goal_amount %}
+                    <p
+                        class="hy-charity-reel__sums"
+                        title="{{ case.collected_amount|default:0|uzs_spaced }} / {{ case.goal_amount|uzs_spaced }} so‘m"
+                    >
+                        <span class="hy-charity-reel__sum-n">{{ case.collected_amount|default:0|uzs_compact }}</span>
+                        <span class="hy-charity-reel__sum-sep" aria-hidden="true">/</span>
+                        <span class="hy-charity-reel__sum-n hy-charity-reel__sum-n--goal">{{ case.goal_amount|uzs_compact }}</span>
+                    </p>
+                    {% endif %}
+                    <span class="hy-charity-reel__cta">Batafsil</span>
+                </div>
+            </a>
+        </article>
+        {% empty %}
+        <div class="hy-charity-empty">
+            <p>Hozircha yozuv yo‘q.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'js/charities-list.js' %}"></script>
+<script>
+(function () {
+    var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    document.querySelectorAll(".hy-charity-reel__video").forEach(function (el) {
+        var io = new IntersectionObserver(
+            function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting && e.intersectionRatio > 0.45) {
+                        el.play().catch(function () {});
+                    } else {
+                        el.pause();
+                    }
+                });
+            },
+            { threshold: [0, 0.45, 0.9] }
+        );
+        io.observe(el);
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} | Qidiruv{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{{ url_feed }}" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+        <h1 class="hy-form-header__title">Qidiruv</h1>
+        <span style="width:34px" aria-hidden="true"></span>
+    </div>
+</div>
+
+<div class="hy-form-page">
+    <div class="hy-form-card hy-yaqin-page">
+        <div class="hy-yaqin-search hy-yaqin-search--sticky">
+            <form method="get" action="{% url 'user_search' %}" class="hy-ig-searchbar">
+                <span class="hy-ig-searchbar__ico" aria-hidden="true">{% include "includes/hybrid_icon.html" with name="search" %}</span>
+                <input
+                    id="hy-user-search-q"
+                    name="q"
+                    class="hy-yaqin-search__input hy-ig-searchbar__input"
+                    type="search"
+                    placeholder="Qidirish"
+                    autocomplete="off"
+                    value="{% if q %}@{{ q }}{% endif %}"
+                    hx-get="{% url 'user_search' %}"
+                    hx-trigger="keyup changed delay:200ms"
+                    hx-target="#hy-user-search-list"
+                    hx-swap="innerHTML"
+                >
+                <button type="button" class="hy-ig-searchbar__clear" id="hy-user-search-clear" aria-label="Tozalash" style="display:none">×</button>
+            </form>
+        </div>
+
+        <div class="hy-user-search__recent" id="hy-user-search-recent" style="display:none">
+            <div class="hy-user-search__recent-h">
+                <span>Oxirgi qidiruvlar</span>
+                <button type="button" class="hy-user-search__recent-clear" id="hy-user-search-recent-clear">Tozalash</button>
+            </div>
+            <div class="hy-user-search__chips" id="hy-user-search-chips"></div>
+        </div>
+
+        <ul class="hy-yaqin-list hy-yaqin-list--grouped" aria-label="Foydalanuvchilar" id="hy-user-search-list">
+            {% include "users/includes/search_results.html" %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var KEY = "mf3:recentSearchUsers:v1";
+  var input = document.getElementById("hy-user-search-q");
+  var clearBtn = document.getElementById("hy-user-search-clear");
+  var recentWrap = document.getElementById("hy-user-search-recent");
+  var chipsEl = document.getElementById("hy-user-search-chips");
+  var recentClear = document.getElementById("hy-user-search-recent-clear");
+  var list = document.getElementById("hy-user-search-list");
+  if (!input || !clearBtn || !recentWrap || !chipsEl || !recentClear || !list) return;
+
+  function norm(v) {
+    v = (v || "").toString().trim();
+    if (v.startsWith("@")) v = v.slice(1);
+    return v.toLowerCase().trim();
+  }
+
+  function readRecent() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return [];
+      return arr.filter(Boolean).slice(0, 12);
+    } catch (e) { return []; }
+  }
+
+  function writeRecent(arr) {
+    try { localStorage.setItem(KEY, JSON.stringify(arr.slice(0, 12))); } catch (e) {}
+  }
+
+  function renderRecent() {
+    var arr = readRecent();
+    chipsEl.innerHTML = "";
+    if (!arr.length) {
+      recentWrap.style.display = "none";
+      return;
+    }
+    recentWrap.style.display = "";
+    arr.forEach(function (u) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "hy-user-search__chip";
+      b.textContent = "@" + u;
+      b.addEventListener("click", function () {
+        input.value = "@" + u;
+        input.dispatchEvent(new Event("keyup"));
+        input.focus();
+      });
+      chipsEl.appendChild(b);
+    });
+  }
+
+  function syncClear() {
+    clearBtn.style.display = input.value ? "" : "none";
+  }
+
+  clearBtn.addEventListener("click", function () {
+    input.value = "";
+    syncClear();
+    input.dispatchEvent(new Event("keyup"));
+    input.focus();
+    renderRecent();
+  });
+
+  input.addEventListener("input", function () {
+    syncClear();
+    if (!input.value) renderRecent();
+    else recentWrap.style.display = "none";
+  });
+
+  recentClear.addEventListener("click", function () {
+    writeRecent([]);
+    renderRecent();
+  });
+
+  list.addEventListener("click", function (e) {
+    var a = e.target && e.target.closest ? e.target.closest("a[data-remember-search]") : null;
+    if (!a) return;
+    var u = norm(a.getAttribute("data-remember-search") || "");
+    if (!u) return;
+    var arr = readRecent().filter(function (x) { return x !== u; });
+    arr.unshift(u);
+    writeRecent(arr);
+  }, true);
+
+  syncClear();
+  if (!input.value) renderRecent();
+})();
+</script>
+{% endblock %}

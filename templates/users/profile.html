@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+{% load static %}
+{% load blog_extras %}
+
+{% block title %} | @{{ profile_user.username }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-container mf-soul-profile">
+    <header class="profile-header-desktop mf-soul-hero hy-profile-hero">
+        {% if is_owner %}
+        <details class="hy-profile-sections">
+            <summary class="hy-profile-sections__btn" aria-label="Bo‘limlar menyusi">
+                <span class="hy-ico-closed">{% include "includes/hybrid_icon.html" with name="menu" %}</span>
+                <span class="hy-ico-open">{% include "includes/hybrid_icon.html" with name="x" %}</span>
+            </summary>
+            <div class="hy-profile-sections__panel" role="menu">
+                <a href="{% url 'archive' %}" role="menuitem">{% include "includes/hybrid_icon.html" with name="pin" %}<span>Arxiv (Kalendar)</span></a>
+                <a href="#" role="menuitem" aria-disabled="true" class="is-disabled">{% include "includes/hybrid_icon.html" with name="paper" %}<span>Draftlar</span><span class="hy-soon">Tez orada</span></a>
+                <a href="#" role="menuitem" aria-disabled="true" class="is-disabled">{% include "includes/hybrid_icon.html" with name="heart" %}<span>Sevimlilar</span><span class="hy-soon">Tez orada</span></a>
+                <a href="{% url 'stats' %}" role="menuitem">{% include "includes/hybrid_icon.html" with name="trend_up" %}<span>Statistika</span></a>
+            </div>
+        </details>
+        {% endif %}
+        <div class="mf-soul-hero__inner w-full">
+            <div class="mf-soul-avatar">
+                <div class="mf-soul-avatar__ring"></div>
+                <div class="mf-soul-avatar__core">
+                    {% if profile_user.photo %}
+                        <img class="profile-avatar" src="{{ profile_user.photo.url }}" alt="@{{ profile_user.username }}">
+                    {% else %}
+                        <div class="profile-avatar-placeholder mf-ph-plain">
+                            {{ profile_user.first_name|default:profile_user.username|make_list|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mf-soul-hero__right">
+                <div class="mf-soul-identity">
+                    {% if profile_user.first_name or profile_user.last_name %}
+                    <p class="mf-soul-display-name">{{ profile_user.first_name }} {{ profile_user.last_name }}</p>
+                    {% endif %}
+                    <h1 class="mf-soul-handle inline-flex items-center flex-wrap gap-1 {% if profile_user.first_name or profile_user.last_name %}mf-soul-handle--sub{% endif %}">
+                        <span class="mf-soul-handle__at">@</span><span class="mf-soul-handle__name">{{ profile_user.username }}</span>
+                        {% if profile_user.is_verified %}
+                        <span class="mf-verify-ico" title="Tasdiqlangan"><i class="bi bi-patch-check-fill" aria-hidden="true"></i></span>
+                        {% endif %}
+                    </h1>
+
+                    <div class="mf-ig-row" role="navigation" aria-label="Profil ko‘rsatkichlari">
+                        <a class="mf-ig-cell" href="#hy-main-content" aria-label="Xotiralar: {{ posts.paginator.count }}">
+                            <span class="mf-ig-num">{{ posts.paginator.count }}</span>
+                            <span class="mf-ig-lbl">xotiralar</span>
+                        </a>
+                        <a class="mf-ig-cell" href="{% url 'yaqin_list' username=profile_user.username %}" aria-label="Yaqinlar: {{ yaqin_count }}">
+                            <span class="mf-ig-num">{{ yaqin_count }}</span>
+                            <span class="mf-ig-lbl">yaqinlarim</span>
+                        </a>
+                    </div>
+
+                    {% if user.is_authenticated and not is_owner %}
+                    <div class="mf-yaqin-line">
+                        {% if yaqin_state == 'accepted' %}
+                        <span class="mf-yaqin-pill mf-yaqin-pill--ok">Yaqin</span>
+                        <a href="{% url 'dm_thread' username=profile_user.username %}" class="mf-pill-btn mf-pill-btn--primary" style="margin-left:6px">Xabar</a>
+                        {% elif yaqin_state == 'pending_out' %}
+                        <span class="mf-yaqin-pill">So‘rov yuborilgan</span>
+                        <form method="post" style="display:inline">{% csrf_token %}
+                            <button type="submit" name="action" value="yaqin_cancel" class="mf-pill-btn mf-pill-btn--ghost">Bekor</button>
+                        </form>
+                        {% elif yaqin_state == 'pending_in' %}
+                        <form method="post" style="display:inline">{% csrf_token %}
+                            <button type="submit" name="action" value="yaqin_accept" class="mf-pill-btn mf-pill-btn--primary">Qabul</button>
+                        </form>
+                        <form method="post" style="display:inline">{% csrf_token %}
+                            <button type="submit" name="action" value="yaqin_decline" class="mf-pill-btn mf-pill-btn--ghost">Rad</button>
+                        </form>
+                        {% elif yaqin_state == 'none' %}
+                        <form method="post" style="display:inline">{% csrf_token %}
+                            <button type="submit" name="action" value="yaqin_request" class="mf-pill-btn mf-pill-btn--primary">Yaqinlashish</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="mf-profile-toolbar">
+        {% if is_owner %}
+        <div class="mf-profile-toolbar__own" style="margin-left:0">
+            <a href="{% url 'profile_edit' %}">{% include "includes/hybrid_icon.html" with name="pencil" %}<span>Tahrirlash</span></a>
+            <a href="{% url 'profile_settings' %}">{% include "includes/hybrid_icon.html" with name="cog" %}<span>Sozlamalar</span></a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not is_owner %}
+    <div class="hy-form-card hy-profile-about" id="mf-profile-meta">
+        {% if profile_user.bio %}
+        <p class="hy-profile-about__bio">{{ profile_user.bio }}</p>
+        {% endif %}
+        {% if profile_user.region %}
+        <div class="hy-profile-about__row">
+            <span class="hy-profile-about__ico">{% include "includes/hybrid_icon.html" with name="pin" %}</span>
+            <span><strong>Viloyat</strong> · {{ profile_user.get_region_display }}</span>
+        </div>
+        {% endif %}
+        {% if profile_user.links %}
+        <div class="hy-profile-about__row">
+            <span class="hy-profile-about__ico">{% include "includes/hybrid_icon.html" with name="link" %}</span>
+            <ul class="hy-profile-about__links">
+            {% for link in profile_user.links %}
+            {% if link %}
+            <li><a href="{{ link }}" target="_blank" rel="noopener noreferrer">{{ link }}</a></li>
+            {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="mf-soul-body">
+        {% include "includes/yaqin_incoming_banner.html" %}
+        {% if reminder_show %}
+        <div class="mf-reminder-banner" role="status">
+            Xotira yozish vaqti — qisqa eslatma.
+        </div>
+        {% endif %}
+
+        <p class="hy-section-title">Xotiralar</p>
+        <div class="hy-profile-posts">
+            {% for post in posts %}
+            {% include "includes/post_card.html" with show_mark_seen=False profile_owner_menu=is_owner profile_user=profile_user cal_year=cal_year cal_month=cal_month %}
+            {% empty %}
+            <div class="hy-feed-empty" style="border:none;box-shadow:none;margin:8px">
+                <p>Hech narsa yo‘q</p>
+            </div>
+            {% endfor %}
+        </div>
+
+            {% if posts.has_next %}
+            <div class="hy-load-more">
+                <a href="?page={{ posts.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}&cal_year={{ cal_year }}&cal_month={{ cal_month }}">Yana yuklash</a>
+            </div>
+            {% endif %}
+    </div>
+</div>
+
+{# Qidiruv/filtrlar paneli olib tashlandi #}
+
+{% if is_owner %}
+<div id="moodExtrasModal" class="mf-modal-backdrop mf-modal--bottom" role="dialog" aria-modal="true" aria-labelledby="mood-extras-title" style="display:none" onclick="if(event.target===this) toggleMoodExtrasModal(false)">
+    <div class="mf-modal-panel" onclick="event.stopPropagation()">
+        <div class="mf-modal-head">
+            <h2 id="mood-extras-title" class="mf-modal-title">Qo‘shimcha kayfiyatlar</h2>
+            <button type="button" class="mf-modal-close" onclick="toggleMoodExtrasModal(false)" aria-label="Yopish">&times;</button>
+        </div>
+        <div class="mf-modal-body">
+            <div class="mf-mood-extras-list">
+                {% for k in kayfiyat_extras %}
+                <button type="button" class="mf-mood-chip" data-mood-slug="{{ k.slug }}">
+                    <span class="mf-mood-chip__emoji">{{ k.emoji }}</span>
+                    <span>{{ k.name }}</span>
+                </button>
+                {% empty %}
+                <p class="text-sm text-neutral-500 m-0">Hozircha qo‘shimcha kayfiyatlar yo‘q. Admin panelda <strong>Kayfiyat</strong> orqali qo‘shishingiz mumkin.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="feelModal" class="mf-compose" role="dialog" aria-modal="true" aria-labelledby="mf-compose-title" onclick="if(event.target===this) toggleModal('close')">
+    <div class="mf-compose__panel" onclick="event.stopPropagation()">
+        <header class="mf-compose__head">
+            <div>
+                <h2 id="mf-compose-title" class="mf-compose__title">Yangi xotira</h2>
+                <p id="mf-compose-subtitle" class="mf-compose__subtitle">255 belgigacha</p>
+            </div>
+            <button type="button" class="mf-compose__close" onclick="toggleModal('close')" aria-label="Yopish">&times;</button>
+        </header>
+        <form method="post" class="mf-compose__form" id="mf-compose-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="compose-action" value="create">
+            {{ form.post_id }}
+            <div>
+                <label class="mf-compose__label" for="id_title">Mavzu</label>
+                {{ form.title }}
+            </div>
+            <div>
+                <span class="mf-compose__label" id="mf-mood-label">Kayfiyat</span>
+                {{ form.mood }}
+                <div class="mf-mood-primary" role="radiogroup" aria-labelledby="mf-mood-label">
+                    {% for k in kayfiyat_primary %}
+                    <button type="button" class="mf-mood-chip" data-mood-slug="{{ k.slug }}">
+                        <span class="mf-mood-chip__emoji">{{ k.emoji }}</span>
+                        <span>{{ k.name }}</span>
+                    </button>
+                    {% empty %}
+                    <p class="text-xs text-red-600 m-0">Admin panelda kamida bitta <strong>asosiy</strong> kayfiyat qo‘shing.</p>
+                    {% endfor %}
+                </div>
+                {% if kayfiyat_extras %}
+                <button type="button" class="mf-link-btn" style="margin-top:8px;display:inline-block" onclick="toggleMoodExtrasModal(true)">Qo‘shimcha kayfiyatlar</button>
+                {% endif %}
+            </div>
+            <div class="mf-compose__row2">
+                <div>
+                    <label class="mf-compose__label" for="id_hashtag">Hashtag</label>
+                    {{ form.hashtag }}
+                </div>
+                <div>
+                    <label class="mf-compose__label" for="id_visibility">Ko‘rinish</label>
+                    {{ form.visibility }}
+                </div>
+            </div>
+            <div id="mf-collab-row">
+                <span class="mf-compose__label">Hammualliflar (yaqinlardan, 3 tagacha)</span>
+                <p class="text-xs text-amber-800/80 m-0 mb-2">Tanlanganlar bildirishnoma orqali tasdiqlaguncha o‘z profilingizda ko‘rinmaydi.</p>
+                {{ form.collaborators }}
+            </div>
+            <div>
+                <label class="mf-compose__label" for="id_body">Matn</label>
+                <div class="mf-compose__body-wrap">
+                    {{ form.body }}
+                    <span class="mf-compose__counter" id="char-limit-modal" aria-live="polite">0 / 255</span>
+                </div>
+            </div>
+            <div id="compose-btns-new" class="mf-compose__actions">
+                <button type="submit" class="mf-compose__submit" onclick="document.getElementById('compose-action').value='create';">Nashr</button>
+                <button type="submit" class="mf-compose__btn-secondary" onclick="document.getElementById('compose-action').value='draft';">Qoralama</button>
+            </div>
+            <div id="compose-btns-edit" class="mf-compose__actions" style="display:none;">
+                <button type="submit" class="mf-compose__submit" onclick="document.getElementById('compose-action').value='update';">Saqlash</button>
+                <button type="submit" class="mf-compose__btn-secondary" onclick="document.getElementById('compose-action').value='draft_update';">Qoralama</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function hyNativeShare(url) {
+        if (!url) return;
+        if (navigator.share) {
+            navigator.share({ url: url }).catch(function () {});
+            return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).catch(function () {});
+        }
+    }
+    window.MF_DEFAULT_MOOD = "{{ default_mood_slug|default:''|escapejs }}";
+    function mfSelectMood(slug) {
+        var mo = document.getElementById('id_mood');
+        if (mo) mo.value = slug || '';
+        document.querySelectorAll('.mf-mood-chip').forEach(function (b) {
+            var s = b.getAttribute('data-mood-slug');
+            b.classList.toggle('mf-mood-chip--active', s && s === (slug || ''));
+        });
+    }
+    function mfSyncMoodUI() {
+        var mo = document.getElementById('id_mood');
+        mfSelectMood(mo ? mo.value : '');
+    }
+    function toggleMoodExtrasModal(open) {
+        var el = document.getElementById('moodExtrasModal');
+        if (!el) return;
+        el.style.display = open ? 'flex' : 'none';
+    }
+    document.addEventListener('click', function (e) {
+        var exBtn = e.target.closest('#moodExtrasModal .mf-mood-extras-list [data-mood-slug]');
+        if (exBtn) {
+            mfSelectMood(exBtn.getAttribute('data-mood-slug'));
+            toggleMoodExtrasModal(false);
+            return;
+        }
+        var prBtn = e.target.closest('#feelModal .mf-mood-primary [data-mood-slug]');
+        if (prBtn) {
+            mfSelectMood(prBtn.getAttribute('data-mood-slug'));
+        }
+    });
+    function setComposeMode(edit) {
+        var n = document.getElementById('compose-btns-new');
+        var e = document.getElementById('compose-btns-edit');
+        if (n) n.style.display = edit ? 'none' : 'flex';
+        if (e) e.style.display = edit ? 'flex' : 'none';
+        var cr = document.getElementById('mf-collab-row');
+        if (cr) {
+            cr.style.display = edit ? 'none' : 'block';
+            cr.querySelectorAll('input[type=checkbox]').forEach(function (i) { i.disabled = edit; });
+        }
+        var t = document.getElementById('mf-compose-title');
+        var s = document.getElementById('mf-compose-subtitle');
+        if (t) t.textContent = edit ? 'Tahrirlash' : 'Yangi xotira';
+        if (s) s.textContent = edit ? '255 belgigacha' : '255 belgigacha';
+    }
+    function openEditPost(id, title, body, mood, hashtag, visibility) {
+        var modal = document.getElementById('feelModal');
+        var pid = document.getElementById('id_post_id');
+        if (pid) pid.value = id;
+        var ti = document.getElementById('id_title');
+        var bo = document.getElementById('id_body');
+        var mo = document.getElementById('id_mood');
+        var ha = document.getElementById('id_hashtag');
+        var vi = document.getElementById('id_visibility');
+        if (ti) ti.value = title;
+        if (bo) bo.value = body;
+        if (mo) mo.value = mood;
+        mfSyncMoodUI();
+        if (ha) ha.value = hashtag || '';
+        if (vi) vi.value = String(visibility);
+        document.getElementById('compose-action').value = 'update';
+        setComposeMode(true);
+        modal.style.display = 'flex';
+        var ta = modal.querySelector('textarea[name="body"]');
+        if (ta) { updateCharCount(ta); setTimeout(function () { ta.focus(); }, 120); }
+    }
+    function toggleModal(action) {
+        const modal = document.getElementById('feelModal');
+        if (!modal) return;
+        modal.style.display = (action === 'open') ? 'flex' : 'none';
+        if (action === 'open') {
+            var act = document.getElementById('compose-action');
+            if (act) act.value = 'create';
+            var pid = document.getElementById('id_post_id');
+            if (pid) pid.value = '';
+            var ti = document.getElementById('id_title');
+            var bo = document.getElementById('id_body');
+            var ha = document.getElementById('id_hashtag');
+            if (ti) ti.value = '';
+            if (bo) bo.value = '';
+            if (ha) ha.value = '';
+            var mo = document.getElementById('id_mood');
+            if (mo) mo.value = window.MF_DEFAULT_MOOD || '';
+            mfSyncMoodUI();
+            var vi = document.getElementById('id_visibility');
+            if (vi) vi.value = '0';
+            setComposeMode(false);
+            const ta = modal.querySelector('textarea[name="body"]');
+            if (ta) {
+                updateCharCount(ta);
+                setTimeout(function () { ta.focus(); }, 120);
+            }
+        }
+    }
+    function updateCharCount(el) {
+        const out = document.getElementById('char-limit-modal');
+        if (!out || !el) return;
+        const n = el.value.length;
+        const max = el.getAttribute('maxlength') || 255;
+        out.textContent = n + ' / ' + max;
+        out.style.color = n >= max ? '#e11d48' : '#c2410c';
+    }
+    function togglePostMenu(id) {
+        const menu = document.getElementById(id);
+        document.querySelectorAll('.menu-dropdown').forEach(m => { if(m.id !== id) m.style.display = 'none'; });
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+    window.onclick = function(event) {
+        if (!event.target.closest('.post-menu')) {
+            document.querySelectorAll('.menu-dropdown').forEach(m => m.style.display = 'none');
+        }
+    };
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var mem = document.getElementById('moodExtrasModal');
+        if (mem && mem.style.display === 'flex') { toggleMoodExtrasModal(false); return; }
+        var m = document.getElementById('feelModal');
+        if (m && m.style.display === 'flex') toggleModal('close');
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        mfSyncMoodUI();
+    });
+    (function () {
+        var box = document.querySelector('.mf-collab-checkboxes');
+        if (!box) return;
+        box.addEventListener('change', function () {
+            var inputs = box.querySelectorAll('input[type="checkbox"]:checked');
+            if (inputs.length <= 3) return;
+            var last = inputs[inputs.length - 1];
+            last.checked = false;
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+{% load blog_extras %}
+
+{% block title %} | {{ post.title|truncatechars:40 }}{% endblock %}
+
+{% block content %}
+<div class="hy-pd">
+    <a href="{% url 'profile' username=profile_user.username %}" class="hy-pd__back" aria-label="Profilga qaytish">
+        ← @{{ profile_user.username }}
+    </a>
+
+    {% if post_collabs %}
+    <div class="hy-pd__collab" role="status">
+        <span>Hammualliflik</span>
+        <div class="hy-pd__faces">
+            {% if profile_user.photo %}
+            <img src="{{ profile_user.photo.url }}" alt="" width="32" height="32">
+            {% else %}
+            <span>{{ profile_user.username|make_list|first|upper }}</span>
+            {% endif %}
+            {% for c in post_collabs %}
+                {% if c.collaborator.photo %}
+                <img src="{{ c.collaborator.photo.url }}" alt="@{{ c.collaborator.username }}" width="32" height="32" title="@{{ c.collaborator.username }}">
+                {% else %}
+                <span title="@{{ c.collaborator.username }}">{{ c.collaborator.username|make_list|first|upper }}</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="hy-pd__card">
+        <div class="hy-pd__inner">
+            <div class="hy-pd__head">
+                <div>
+                    <h1 class="hy-pd__title">{{ post.title }}</h1>
+                    <div class="hy-pd__time">{{ post.created_at|date:"H:i · d M Y" }}</div>
+                </div>
+                <span class="hy-mood-emoji" style="font-size:1.5rem" aria-hidden="true">{{ post.mood|mood_emoji }}</span>
+            </div>
+            <p class="hy-pd__body">{{ post.body }}</p>
+            <div class="hy-pd__tags">
+                {% if post.hashtag %}
+                <a href="{% url 'hashtag_explore' tag=post.hashtag|cut:'#' %}" class="hy-tag">{{ post.hashtag }}</a>
+                {% endif %}
+                {% if visibility_labels %}
+                <span class="hy-pill hy-pill--vis">{{ visibility_labels|get_item:post.visibility }}</span>
+                {% endif %}
+            </div>
+            <div class="hy-post-actions hy-pd__actions">
+                <a href="{% url 'post_detail' username=profile_user.username post_id=post.id %}#comments" class="hy-act-reply" aria-label="Izohlar">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+                <button type="button" class="hy-act-share" aria-label="Ulashish" data-hy-share-url="{{ request.scheme }}://{{ request.get_host }}{% url 'post_detail' username=profile_user.username post_id=post.id %}" onclick="hyNativeShare(this.getAttribute('data-hy-share-url'))">{% include "includes/hybrid_icon.html" with name="share" %}</button>
+            </div>
+        </div>
+    </div>
+
+    <section class="hy-pd-comments" id="comments" aria-label="Izohlar">
+        <h2>Izohlar</h2>
+        {% if can_comment %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_comment">
+            <label class="hy-form-label" for="id_comment_body">Izoh</label>
+            <textarea name="body" id="id_comment_body" rows="3" maxlength="500" class="hy-form-input" placeholder="Izohingiz (faqat yaqinlar va muallif)"></textarea>
+            <button type="submit" class="hy-pd-comments__submit">Yuborish</button>
+        </form>
+        {% else %}
+        <p class="hy-activity__text" style="margin:0;color:var(--hy-text-muted)">Izoh qoldirish faqat <strong>yaqinlar</strong> va muallif uchun ochiq.</p>
+        {% endif %}
+
+        <div class="hy-pd-comment-list">
+            {% for c in comments %}
+            <div class="hy-pd-comment">
+                <div class="hy-pd-comment__meta">
+                    <a href="{% url 'profile' username=c.author.username %}">@{{ c.author.username }}</a>
+                    <span class="hy-pd-comment__time">{{ c.created_at|date:"d.m H:i" }}</span>
+                </div>
+                <p class="hy-pd-comment__body">{{ c.body }}</p>
+            </div>
+            {% empty %}
+            <p class="hy-activity__text" style="margin:0;color:var(--hy-text-muted)">Hali izoh yo‘q.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if is_owner %}
+    <p class="hy-pd__hint">Tahrirlash uchun profilingizdagi post kartasidagi menyudan «Tahrirlash»ni tanlang.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function hyNativeShare(url) {
+    if (!url) return;
+    if (navigator.share) {
+        navigator.share({ url: url }).catch(function () {});
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(function () {});
+    }
+}
+</script>
+{% endblock %}

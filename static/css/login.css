@@ -1,0 +1,95 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    /* Soft warm background */
+    background: linear-gradient(135deg, #fffcfb 0%, #fff6f2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.login-container {
+    background: #ffffff;
+    border: 1px solid #fce8e1;
+    border-radius: 12px;
+    padding: 40px 40px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(255, 94, 58, 0.08); /* slight warm shadow */
+}
+
+.login-logo {
+    width: 160px;
+    margin-bottom: 25px;
+    pointer-events: none;
+}
+
+.form-floating > label {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.form-control:focus {
+    border-color: #ff5e3a;
+    box-shadow: 0 0 0 0.2rem rgba(255, 94, 58, 0.15);
+}
+
+.btn-login {
+    /* Red-to-Orange Premium Gradient */
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 16px;
+    transition: all 0.2s ease-in-out;
+    border: none;
+}
+
+.btn-login:disabled {
+    background: #ffb8a7;
+    opacity: 0.8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-login:hover:not(:disabled) {
+    background: linear-gradient(45deg, #f22956, #f03918);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 75, 43, 0.3);
+}
+
+.register-link {
+    color: #ff4b2b;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.register-link:hover {
+    color: #ff416c;
+}
+
+.register-container {
+    background: #ffffff;
+    border: 1px solid #fce8e1;
+    border-radius: 12px;
+    padding: 20px 40px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(255, 94, 58, 0.04);
+}
+
+@media (max-width: 450px) {
+    .login-container, .register-container {
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        padding-top: 5vh;
+    }
+    body {
+        align-items: flex-start;
+        background: #fffcfb;
+    }
+}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} | @{{ profile_user.username }} — yaqinlar{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{% url 'profile' username=profile_user.username %}" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+        <h1 class="hy-form-header__title">Yaqinlar</h1>
+        <span style="width:34px" aria-hidden="true"></span>
+    </div>
+</div>
+
+<div class="hy-form-page">
+    <div class="hy-form-card hy-yaqin-page">
+        <div class="hy-yaqin-page__head">
+            <p class="hy-yaqin-page__title">@{{ profile_user.username }} ning yaqinlari</p>
+            <p class="hy-yaqin-page__count">{{ yaqin_users|length }} ta</p>
+        </div>
+
+        <div class="hy-yaqin-search">
+            <input id="hy-yaqin-q" class="hy-yaqin-search__input" type="search" placeholder="Qidirish…" autocomplete="off">
+        </div>
+
+        <ul class="hy-yaqin-list hy-yaqin-list--grouped" aria-label="Yaqinlar ro‘yxati" id="hy-yaqin-list">
+            {% for u in yaqin_users %}
+            <li class="hy-yaqin-list__item" data-name="{{ u.get_full_name|default:u.username|lower }}" data-handle="{{ u.username|lower }}">
+                <a class="hy-yaqin-list__link" href="{% url 'profile' username=u.username %}">
+                    {% if u.photo %}
+                    <img class="hy-yaqin-list__avatar" src="{{ u.photo.url }}" alt="" width="44" height="44">
+                    {% else %}
+                    <span class="hy-yaqin-list__ph">{{ u.username|make_list|first|upper }}</span>
+                    {% endif %}
+                    <span class="hy-yaqin-list__meta">
+                        <span class="hy-yaqin-list__name">{{ u.get_full_name|default:u.username }}</span>
+                        <span class="hy-yaqin-list__handle">@{{ u.username }}</span>
+                    </span>
+                    <span class="hy-yaqin-list__chev" aria-hidden="true">›</span>
+                </a>
+            </li>
+            {% empty %}
+            <li class="hy-yaqin-list__empty">Hozircha yaqinlar yo‘q.</li>
+            {% endfor %}
+            <li class="hy-yaqin-list__nomatch" id="hy-yaqin-nomatch" style="display:none">Hech nima topilmadi.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var input = document.getElementById('hy-yaqin-q');
+  var list = document.getElementById('hy-yaqin-list');
+  var nomatch = document.getElementById('hy-yaqin-nomatch');
+  if (!input || !list) return;
+  function norm(s){ return (s||'').toString().toLowerCase().trim(); }
+  function run() {
+    var q = norm(input.value);
+    var shown = 0;
+    list.querySelectorAll('.hy-yaqin-list__item').forEach(function (li) {
+      var name = li.getAttribute('data-name') || '';
+      var handle = li.getAttribute('data-handle') || '';
+      var ok = !q || name.indexOf(q) !== -1 || handle.indexOf(q) !== -1;
+      li.style.display = ok ? '' : 'none';
+      if (ok) shown += 1;
+    });
+    if (nomatch) nomatch.style.display = (q && shown === 0) ? '' : 'none';
+  }
+  input.addEventListener('input', run);
+})();
+</script>
+{% endblock %}
+

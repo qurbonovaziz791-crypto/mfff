@@ -1,0 +1,120 @@
+{% load static %}
+{# Desktop: chap sidebar | Mobil: pastki navigatsiya #}
+<aside class="hy-sidebar" aria-label="Asosiy navigatsiya">
+    <a href="{% if user.is_authenticated %}{{ url_feed }}{% else %}{{ url_login }}{% endif %}" class="hy-sidebar__brand">
+        <img src="{% static 'logo/mf.png' %}" class="hy-sidebar__logo-img" alt="MYFEEL" loading="eager" decoding="async">
+    </a>
+
+    <nav class="hy-side-nav" aria-label="Bo‘limlar">
+        {% if user.is_authenticated %}
+        <a href="{{ url_feed }}" class="hy-side-link {% if request.path|slice:':5' == '/feed' %}hy-side-link--active{% endif %}">
+            {% include "includes/hybrid_icon.html" with name="home" %}
+            <span>Siz uchun</span>
+        </a>
+        <a href="{% url 'user_search' %}" class="hy-side-link {% if request.path == '/search/' %}hy-side-link--active{% endif %}">
+            {% include "includes/hybrid_icon.html" with name="search" %}
+            <span>Qidirish</span>
+        </a>
+        <a href="{% url 'compose' %}" class="hy-side-link {% if request.path == '/compose/' %}hy-side-link--active{% endif %}">
+            {% include "includes/hybrid_icon.html" with name="plus" %}
+            <span>His qilish</span>
+        </a>
+        <a href="{% url 'charity_list' %}" class="hy-side-link {% if request.path|slice:':11' == '/hayriyalar' %}hy-side-link--active{% endif %}">
+            {% include "includes/hybrid_icon.html" with name="gift" %}
+            <span>Hayriyalar</span>
+        </a>
+        <a href="{{ url_activity }}" class="hy-side-link {% if request.path == url_activity %}hy-side-link--active{% endif %}"{% if activity_unread_count %} aria-label="Faoliyat, yangi bildirishnomalar"{% endif %}>
+            <span class="hy-side-link__badge">{% include "includes/hybrid_icon.html" with name="heart" %}{% include "includes/activity_nav_badge.html" %}</span>
+            <span>Faoliyat</span>
+        </a>
+        <a href="#" class="hy-side-link" title="Tez orada">
+            {% include "includes/hybrid_icon.html" with name="trend_up" %}
+            <span>Missiyalar</span>
+        </a>
+        <a href="{% url 'dm_inbox' %}" class="hy-side-link hy-side-link--dm {% if request.path|slice:':9' == '/xabarlar' %}hy-side-link--active{% endif %}">
+            <span class="hy-side-link__badge hy-side-link__badge--dm">{% include "includes/hybrid_icon.html" with name="chat" %}{% include "includes/dm_nav_badge.html" %}</span>
+            <span>Xabarlar</span>
+        </a>
+        <a href="{{ url_my_profile }}" class="hy-side-link {% if request.path == url_my_profile %}hy-side-link--active{% endif %}">
+            {% include "includes/hybrid_icon.html" with name="user" %}
+            <span>Profil</span>
+        </a>
+        {% else %}
+        <a href="{% url 'charity_list' %}" class="hy-side-link {% if request.path|slice:':11' == '/hayriyalar' %}hy-side-link--active{% endif %}">
+            {% include "includes/hybrid_icon.html" with name="gift" %}
+            <span>Hayriyalar</span>
+        </a>
+        <a href="{{ url_login }}" class="hy-side-link {% if request.path == url_login %}hy-side-link--active{% endif %}">
+            {% include "includes/hybrid_icon.html" with name="login" %}
+            <span>Kirish</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    {% if user.is_authenticated %}
+    <div class="hy-sidebar__user">
+        <a href="{{ url_my_profile }}">
+            {% if user.photo %}
+            <img class="hy-sidebar__avatar" src="{{ user.photo.url }}" alt="">
+            {% else %}
+            <span class="hy-sidebar__ph">{{ user.username|make_list|first|upper }}</span>
+            {% endif %}
+            <span class="truncate">{{ user.first_name|default:user.username }}</span>
+        </a>
+        <details class="hy-account-dropdown hy-account-dropdown--sidebar">
+            <summary class="hy-account-summary hy-account-summary--icon" aria-label="Hisob menyusi">
+                <span class="hy-ico-closed">{% include "includes/hybrid_icon.html" with name="menu" %}</span>
+                <span class="hy-ico-open">{% include "includes/hybrid_icon.html" with name="x" %}</span>
+            </summary>
+            {% include "includes/hybrid_account_panel.html" %}
+        </details>
+    </div>
+    {% endif %}
+</aside>
+
+{# Mobil: His qilish / Hayriyalar / bildirishnoma yuqori topbarda — pastda takrorlanmasin #}
+<nav class="hy-bottom-nav {% if not user.is_authenticated %}hy-bottom-nav--hidden-mobile{% endif %}" aria-label="Mobil menyu">
+    {% if user.is_authenticated %}
+    <a href="{{ url_feed }}" class="{% if request.path|slice:':5' == '/feed' %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="home" %}</span>
+        <span>Siz uchun</span>
+    </a>
+    <a href="{% url 'user_search' %}" class="{% if request.path == '/search/' %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="search" %}</span>
+        <span>Qidiruv</span>
+    </a>
+    <a href="{% url 'compose' %}" class="hy-bottom-nav__item--dup-topbar {% if request.path == '/compose/' %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="plus" %}</span>
+        <span>His qilish</span>
+    </a>
+    <a href="{% url 'charity_list' %}" class="hy-bottom-nav__item--dup-topbar {% if request.path|slice:':11' == '/hayriyalar' %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="gift" %}</span>
+        <span>Hayriyalar</span>
+    </a>
+    <a href="{{ url_activity }}" class="hy-bottom-nav__item--dup-topbar {% if request.path == url_activity %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="heart" %}{% include "includes/activity_nav_badge.html" %}</span>
+        <span>Faoliyat</span>
+    </a>
+    <a href="#" title="Tez orada">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="trend_up" %}</span>
+        <span>Missiyalar</span>
+    </a>
+    <a href="{% url 'dm_inbox' %}" class="{% if request.path|slice:':9' == '/xabarlar' %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="chat" %}{% include "includes/dm_nav_badge.html" %}</span>
+        <span class="hy-bottom-nav__lbl">Xabarlar</span>
+    </a>
+    <a href="{{ url_my_profile }}" class="{% if request.path == url_my_profile %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="user" %}</span>
+        <span>Profil</span>
+    </a>
+    {% else %}
+    <a href="{% url 'charity_list' %}" class="{% if request.path|slice:':11' == '/hayriyalar' %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="gift" %}</span>
+        <span>Hayriyalar</span>
+    </a>
+    <a href="{{ url_login }}" class="{% if request.path == url_login %}hy-bottom-nav__item--active{% endif %}">
+        <span class="hy-bottom-nav__ico">{% include "includes/hybrid_icon.html" with name="login" %}</span>
+        <span>Kirish</span>
+    </a>
+    {% endif %}
+</nav>

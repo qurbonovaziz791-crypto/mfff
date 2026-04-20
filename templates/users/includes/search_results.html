@@ -1,0 +1,65 @@
+{% for row in rows %}
+<li class="hy-yaqin-list__item">
+  <div class="hy-user-search__row">
+    <a class="hy-yaqin-list__link hy-user-search__link" href="{% url 'profile' username=row.user.username %}" data-remember-search="@{{ row.user.username }}">
+      {% if row.user.photo %}
+      <img class="hy-yaqin-list__avatar" src="{{ row.user.photo.url }}" alt="" width="44" height="44">
+      {% else %}
+      <span class="hy-yaqin-list__ph">{{ row.user.username|make_list|first|upper }}</span>
+      {% endif %}
+      <span class="hy-yaqin-list__meta">
+        <span class="hy-yaqin-list__name">{{ row.display }}</span>
+        <span class="hy-yaqin-list__handle">@{{ row.user.username }}</span>
+        {% if mode == "suggested" and row.mutual and row.mutual > 0 %}
+        <span class="hy-yaqin-list__sub">{{ row.mutual }} umumiy</span>
+        {% endif %}
+      </span>
+    </a>
+
+    <div class="hy-user-search__actions">
+      {% if row.state == "accepted" %}
+      <span class="hy-user-search__pill hy-user-search__pill--ok">Yaqin</span>
+      {% elif row.state == "pending_out" %}
+      <form method="post" action="{% url 'user_search' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="yaqin_cancel">
+        <input type="hidden" name="username" value="{{ row.user.username }}">
+        <input type="hidden" name="q" value="{{ q|default:'' }}">
+        <button class="hy-user-search__btn hy-user-search__btn--ghost" type="submit">Bekor</button>
+      </form>
+      {% elif row.state == "pending_in" %}
+      <form method="post" action="{% url 'user_search' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="yaqin_accept">
+        <input type="hidden" name="username" value="{{ row.user.username }}">
+        <input type="hidden" name="q" value="{{ q|default:'' }}">
+        <button class="hy-user-search__btn" type="submit">Qabul</button>
+      </form>
+      <form method="post" action="{% url 'user_search' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="yaqin_decline">
+        <input type="hidden" name="username" value="{{ row.user.username }}">
+        <input type="hidden" name="q" value="{{ q|default:'' }}">
+        <button class="hy-user-search__btn hy-user-search__btn--ghost" type="submit">Rad</button>
+      </form>
+      {% elif row.state == "none" %}
+        {% if row.allow_requests %}
+        <form method="post" action="{% url 'user_search' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="yaqin_request">
+          <input type="hidden" name="username" value="{{ row.user.username }}">
+          <input type="hidden" name="q" value="{{ q|default:'' }}">
+          <button class="hy-user-search__btn" type="submit">Yaqinlashish</button>
+        </form>
+        {% else %}
+        <span class="hy-user-search__pill">Yopiq</span>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</li>
+{% empty %}
+{% if q %}
+<li class="hy-yaqin-list__nomatch">Hech nima topilmadi.</li>
+{% endif %}
+{% endfor %}

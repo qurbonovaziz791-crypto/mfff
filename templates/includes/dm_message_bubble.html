@@ -1,0 +1,81 @@
+{# requires: m (enriched dict), user, dm_peer — tick_status: None | delivered | read #}
+<div class="hy-dm-msg {% if m.sender_id == user.id %}hy-dm-msg--out{% else %}hy-dm-msg--in{% endif %}" data-dm-msg-id="{{ m.id }}">
+    <div class="hy-dm-msg__bubble">
+        {% if m.reply_quote %}
+        <div class="hy-dm-msg__quote{% if m.reply_quote.deleted %} hy-dm-msg__quote--deleted{% endif %}">
+            <span class="hy-dm-msg__quote-bar" aria-hidden="true"></span>
+            <div class="hy-dm-msg__quote-inner">
+                <span class="hy-dm-msg__quote-who">{% if m.reply_quote.sender_id == user.id %}Siz{% else %}{{ dm_peer.username }}{% endif %}</span>
+                <span class="hy-dm-msg__quote-text">{{ m.reply_quote.preview }}</span>
+            </div>
+        </div>
+        {% endif %}
+        {% if m.deleted_at %}
+        <p class="hy-dm-msg__deleted">Bu xabar o‘chirildi</p>
+        {% else %}
+            {% if m.msg_type == 'image' and m.file_url %}
+            <a href="{{ m.file_url }}" target="_blank" rel="noopener noreferrer" class="hy-dm-msg__img-wrap">
+                <img class="hy-dm-msg__img" src="{{ m.file_url }}" alt="" loading="lazy" width="240" height="240">
+            </a>
+            {% elif m.msg_type == 'voice' and m.file_url %}
+            <div class="hy-dm-msg__voice-wrap">
+                <audio class="hy-dm-msg__audio" controls preload="metadata" src="{{ m.file_url }}"></audio>
+            </div>
+            {% elif m.msg_type == 'file' and m.file_url %}
+            <a href="{{ m.file_url }}" class="hy-dm-msg__file" download>{{ m.orig_filename|default:"Fayl" }}</a>
+            {% endif %}
+            {% if m.body %}
+            <div class="hy-dm-msg__text">{{ m.body|linebreaksbr }}</div>
+            {% endif %}
+        {% endif %}
+        <div class="hy-dm-msg__foot">
+            <div class="hy-dm-msg__meta">
+                {% if m.created_local %}
+                <time class="hy-dm-msg__time" datetime="{{ m.created_local|date:'c' }}">{{ m.created_local|date:"H:i" }}</time>
+                {% endif %}
+                {% if m.edited_local and not m.deleted_at %}
+                <span class="hy-dm-msg__edited">tahrirlandi</span>
+                {% endif %}
+                {% if m.sender_id == user.id and not m.deleted_at and m.tick_status %}
+                <span class="hy-dm-msg__ticks hy-dm-msg__ticks--{{ m.tick_status }}" title="{% if m.tick_status == 'read' %}O‘qilgan{% else %}Yetkazildi{% endif %}" aria-label="{% if m.tick_status == 'read' %}O‘qilgan{% else %}Yetkazildi{% endif %}">
+                    <span class="hy-dm-msg__tick" aria-hidden="true">✓</span>
+                    <span class="hy-dm-msg__tick hy-dm-msg__tick--2" aria-hidden="true"{% if m.tick_status != 'read' %} hidden{% endif %}>✓</span>
+                </span>
+                {% endif %}
+            </div>
+            {% if not m.deleted_at %}
+            <div class="hy-dm-msg__toolbar">
+                <button type="button" class="hy-dm-msg__more" aria-expanded="false" aria-label="Boshqa">⋯</button>
+                <div class="hy-dm-msg__popover" hidden role="dialog" aria-label="Xabar amallari">
+                    <button type="button" class="hy-dm-msg__pop-btn hy-dm-msg__pop-btn--ghost hy-dm-msg__reply-btn"
+                        data-dm-reply="{{ m.id }}"
+                        data-dm-reply-author="{% if m.sender_id == user.id %}Siz{% else %}{{ dm_peer.username }}{% endif %}"
+                        data-dm-reply-snippet="{{ m.reply_btn_snippet|default:''|truncatechars:70|escape }}">Javob berish</button>
+                    <form method="post" class="hy-dm-msg__del" data-dm-delete-scope>
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="message_id" value="{{ m.id }}">
+                        <input type="hidden" name="delete_scope" value="" class="hy-dm-msg__delete-scope">
+                        <button type="submit" class="hy-dm-msg__pop-btn hy-dm-msg__pop-btn--danger">{% if m.sender_id == user.id %}O‘chirish{% else %}Yashirish{% endif %}</button>
+                    </form>
+                    <button type="button" class="hy-dm-msg__pop-btn hy-dm-msg__pop-btn--ghost hy-dm-msg__forward-btn"
+                        data-dm-forward="{{ m.id }}"
+                        data-dm-forward-snippet="{{ m.reply_btn_snippet|default:''|truncatechars:70|escape }}">Yuborish…</button>
+                    {% if m.msg_type == 'text' or m.body %}
+                    {% if m.sender_id == user.id %}
+                    <form method="post" class="hy-dm-msg__edit-pop">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="message_id" value="{{ m.id }}">
+                        <label class="hy-dm-msg__edit-lbl" for="dm-edit-{{ m.id }}">Tahrirlash</label>
+                        <textarea id="dm-edit-{{ m.id }}" name="body" rows="3" maxlength="4000" required class="hy-dm-msg__edit-ta">{{ m.body }}</textarea>
+                        <button type="submit" class="hy-dm-msg__pop-btn hy-dm-msg__pop-btn--primary">Saqlash</button>
+                    </form>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

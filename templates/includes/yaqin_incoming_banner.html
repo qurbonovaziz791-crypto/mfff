@@ -1,0 +1,28 @@
+{% if incoming_yaqin_requests %}
+<div class="mf-yaqin-inbox max-w-2xl mx-auto mb-4" role="region" aria-label="Kutilayotgan yaqinlik so‘rovlari">
+    <div class="mf-yaqin-inbox__head">
+        <span class="mf-yaqin-inbox__title">Sizga yaqinlik so‘rovi</span>
+        <a href="{% url 'activity' %}" class="mf-yaqin-inbox__link">Faoliyatga o‘tish</a>
+    </div>
+    <ul class="mf-yaqin-inbox__list">
+        {% for req in incoming_yaqin_requests %}
+        <li class="mf-yaqin-inbox__item">
+            <div class="mf-yaqin-inbox__who">
+                <a href="{% url 'profile' username=req.from_user.username %}" class="mf-yaqin-inbox__uname">@{{ req.from_user.username }}</a>
+                <span class="mf-yaqin-inbox__hint">siz bilan yaqin bo‘lishni xohlaydi</span>
+            </div>
+            <div class="mf-yaqin-inbox__actions">
+                <form method="post" action="{% url 'profile' username=req.from_user.username %}" class="mf-yaqin-inbox__form">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="yaqin_accept" class="mf-yaqin-inbox__btn mf-yaqin-inbox__btn--ok">Qabul qilish</button>
+                </form>
+                <form method="post" action="{% url 'profile' username=req.from_user.username %}" class="mf-yaqin-inbox__form">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="yaqin_decline" class="mf-yaqin-inbox__btn">Rad etish</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}

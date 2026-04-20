@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Faoliyat{% endblock %}
+
+{% block content %}
+<div class="hy-activity" aria-label="Faoliyat">
+    <header class="hy-activity__top">
+        <h1 class="hy-activity__title">Faoliyat</h1>
+        {% if user.is_authenticated %}
+        <form method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="mark_all_read">
+            <button type="submit" class="hy-activity__markread">Hammasini o‘qilgan</button>
+        </form>
+        {% endif %}
+    </header>
+
+    <ul class="hy-activity__list">
+        {% for row in activity_rows %}
+        {% with n=row.notification actor=row.actor %}
+        <li class="hy-activity__row{% if not n.read_at %} hy-activity__row--unread{% endif %}">
+            {% if n.kind == 'yaqin_request' %}
+            <a href="{% url 'profile' username=n.payload.from_username %}" class="hy-activity__avatar-link" style="flex-shrink:0;text-decoration:none">
+                {% if actor and actor.photo %}
+                <img class="hy-activity__avatar" src="{{ actor.photo.url }}" alt="" width="44" height="44">
+                {% else %}
+                <span class="hy-activity__avatar-ph">{{ n.payload.from_username|default:"?"|make_list|first|upper }}</span>
+                {% endif %}
+            </a>
+            <div class="hy-activity__body">
+                <p class="hy-activity__text">
+                    <a href="{% url 'profile' username=n.payload.from_username %}">{{ n.payload.from_username }}</a>
+                    siz bilan <strong>yaqin</strong> bo‘lishni xohlaydi.
+                </p>
+                <p class="hy-activity__time">{{ n.created_at|date:"d.m.Y · H:i" }}</p>
+                <div class="hy-activity__actions">
+                    <form method="post" action="{% url 'profile' username=n.payload.from_username %}" class="m-0 inline">{% csrf_token %}
+                        <button type="submit" name="action" value="yaqin_accept" class="hy-activity__btn hy-activity__btn--primary">Qabul qilish</button>
+                    </form>
+                    <form method="post" action="{% url 'profile' username=n.payload.from_username %}" class="m-0 inline">{% csrf_token %}
+                        <button type="submit" name="action" value="yaqin_decline" class="hy-activity__btn hy-activity__btn--ghost">Rad etish</button>
+                    </form>
+                </div>
+            </div>
+            {% elif n.kind == 'collab_invite' %}
+            <a href="{% url 'profile' username=n.payload.post_owner_username %}" class="hy-activity__avatar-link" style="flex-shrink:0;text-decoration:none">
+                {% if actor and actor.photo %}
+                <img class="hy-activity__avatar" src="{{ actor.photo.url }}" alt="" width="44" height="44">
+                {% else %}
+                <span class="hy-activity__avatar-ph">{{ n.payload.post_owner_username|default:"?"|make_list|first|upper }}</span>
+                {% endif %}
+            </a>
+            <div class="hy-activity__body">
+                <p class="hy-activity__text">
+                    <a href="{% url 'profile' username=n.payload.post_owner_username %}">{{ n.payload.post_owner_username }}</a>
+                    sizni xotirasiga <strong>hammuallif</strong> sifatida uladi.
+                </p>
+                <p class="hy-activity__time">{{ n.created_at|date:"d.m.Y · H:i" }}</p>
+                <div class="hy-activity__actions">
+                    <a href="{% url 'post_detail' username=n.payload.post_owner_username post_id=n.payload.post_id %}" class="hy-activity__btn hy-activity__btn--ghost" style="display:inline-flex;line-height:1.2">Postni ko‘rish</a>
+                    {% if n.payload.post_owner_username and n.payload.post_id %}
+                    <form method="post" class="m-0 inline">{% csrf_token %}
+                        <input type="hidden" name="action" value="collab_accept">
+                        {% if n.payload.collab_id %}<input type="hidden" name="collab_id" value="{{ n.payload.collab_id }}">{% endif %}
+                        <input type="hidden" name="post_owner_username" value="{{ n.payload.post_owner_username }}">
+                        <input type="hidden" name="post_id" value="{{ n.payload.post_id }}">
+                        <button type="submit" class="hy-activity__btn hy-activity__btn--primary">Qabul qilish</button>
+                    </form>
+                    <form method="post" class="m-0 inline">{% csrf_token %}
+                        <input type="hidden" name="action" value="collab_decline">
+                        {% if n.payload.collab_id %}<input type="hidden" name="collab_id" value="{{ n.payload.collab_id }}">{% endif %}
+                        <input type="hidden" name="post_owner_username" value="{{ n.payload.post_owner_username }}">
+                        <input type="hidden" name="post_id" value="{{ n.payload.post_id }}">
+                        <button type="submit" class="hy-activity__btn hy-activity__btn--ghost">Rad etish</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% elif n.kind == 'dm_message' %}
+            <a href="{% url 'dm_thread' username=n.payload.from_username %}" class="hy-activity__avatar-link" style="flex-shrink:0;text-decoration:none">
+                {% if actor and actor.photo %}
+                <img class="hy-activity__avatar" src="{{ actor.photo.url }}" alt="" width="44" height="44">
+                {% else %}
+                <span class="hy-activity__avatar-ph">{{ n.payload.from_username|default:"?"|make_list|first|upper }}</span>
+                {% endif %}
+            </a>
+            <div class="hy-activity__body">
+                <p class="hy-activity__text">
+                    <a href="{% url 'dm_thread' username=n.payload.from_username %}">{{ n.payload.from_username }}</a>
+                    sizga <strong>xabar</strong> yubordi: {{ n.payload.preview|default:"" }}
+                </p>
+                <p class="hy-activity__time">{{ n.created_at|date:"d.m.Y · H:i" }}</p>
+                <div class="hy-activity__actions">
+                    <a href="{% url 'dm_thread' username=n.payload.from_username %}" class="hy-activity__btn hy-activity__btn--primary">Javob berish</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="hy-activity__body">
+                <p class="hy-activity__text">{{ n.kind }}</p>
+                <p class="hy-activity__time">{{ n.created_at|date:"d.m.Y · H:i" }}</p>
+            </div>
+            {% endif %}
+        </li>
+        {% endwith %}
+        {% empty %}
+        <li class="hy-activity__empty">
+            <strong>Hozircha faoliyat yo‘q</strong>
+            Bu yerda yaqinlik so‘rovlari va hammualliflik takliflari paydo bo‘ladi.
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="hy-activity__footer">
+        <a href="{% url 'home_feed' %}">← Lentaga qaytish</a>
+    </div>
+</div>
+{% endblock %}

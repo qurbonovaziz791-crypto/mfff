@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load blog_extras %}
+
+{% block title %} | Arxiv{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{% url 'profile' username=user.username %}" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+        <h1 class="hy-form-header__title">Arxiv (Kalendar)</h1>
+        <a href="{% url 'compose' %}" aria-label="His qilish">{% include "includes/hybrid_icon.html" with name="plus" %}</a>
+    </div>
+</div>
+
+<div class="hy-archive">
+    <div class="hy-archive__monthbar">
+        <a class="hy-archive__nav" href="?cal_year={{ cal_prev_year }}&cal_month={{ cal_prev_month }}">Oldingi</a>
+
+        <form method="get" class="hy-archive__picker" aria-label="Oy va yil tanlash">
+            <select name="cal_year" class="hy-archive__select" onchange="this.form.submit()">
+                {% for y in years %}
+                <option value="{{ y }}" {% if y == cal_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <select name="cal_month" class="hy-archive__select" onchange="this.form.submit()">
+                {% for m, ml in months %}
+                <option value="{{ m }}" {% if m == cal_month %}selected{% endif %}>{{ ml }}</option>
+                {% endfor %}
+            </select>
+            {% if date_filter %}<input type="hidden" name="date" value="{{ date_filter }}">{% endif %}
+        </form>
+
+        <a class="hy-archive__nav" href="?cal_year={{ cal_next_year }}&cal_month={{ cal_next_month }}">Keyingi</a>
+    </div>
+
+    <div class="hy-archive__subbar">
+        <div class="hy-archive__meta">
+            <span class="hy-archive__pill"><strong>{{ month_total }}</strong> ta</span>
+            <span class="hy-archive__muted">shu oy</span>
+        </div>
+        <a class="hy-archive__today" href="?date={{ today_str }}&cal_year={{ cal_year }}&cal_month={{ cal_month }}">Bugun</a>
+    </div>
+
+    {% if on_this_day %}
+    <div class="hy-archive__todaybox">
+        <div class="hy-archive__todaybox-h">
+            <span class="hy-archive__todaybox-t">Bugun o‘tgan yillarda</span>
+            <span class="hy-archive__todaybox-s">{{ today_str|slice:"5:10" }}</span>
+        </div>
+        <div class="hy-archive__todaybox-list">
+            {% for post in on_this_day %}
+            <a class="hy-archive__todaybox-item" href="{% url 'post_detail' username=user.username post_id=post.id %}">
+                <span class="hy-archive__todaybox-y">{{ post.created_at|date:"Y" }}</span>
+                <span class="hy-archive__todaybox-tl">{{ post.title|truncatechars:36 }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="hy-archive__week" aria-hidden="true">
+        {% for w in weekday_labels %}
+        <div class="hy-archive__w">{{ w }}</div>
+        {% endfor %}
+    </div>
+
+    <div class="hy-archive__grid" aria-label="Kalendar">
+        {% for cell in cal_cells %}
+        {% if cell.d %}
+        <a class="hy-archive__day{% if cell.n %} is-has{% endif %}{% if date_filter and date_filter|slice:'-2:' == cell.d|stringformat:'02d' %} is-active{% endif %}"
+           href="?date={{ cal_year }}-{% if cal_month < 10 %}0{% endif %}{{ cal_month }}-{% if cell.d < 10 %}0{% endif %}{{ cell.d }}&cal_year={{ cal_year }}&cal_month={{ cal_month }}">
+            <span class="hy-archive__d">{{ cell.d }}</span>
+            {% if cell.n %}
+            <span class="hy-archive__n">{{ cell.n }}</span>
+            {% endif %}
+        </a>
+        {% else %}
+        <div class="hy-archive__empty" aria-hidden="true"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <p class="hy-section-title">{% if date_filter %}{{ date_filter }}{% else %}Oxirgi xotiralar{% endif %}</p>
+    <div class="hy-profile-posts">
+        {% for post in posts %}
+        {% include "includes/post_card.html" with show_mark_seen=False profile_owner_menu=True profile_user=user %}
+        {% empty %}
+        <div class="hy-feed-empty" style="border:none;box-shadow:none;margin:8px">
+            <p>Hech narsa yo‘q</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

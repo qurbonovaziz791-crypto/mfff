@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} | Sozlamalar{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{% url 'profile' username=request.user.username %}" aria-label="Orqaga"><i class="bi bi-chevron-left text-xl"></i></a>
+        <h1 class="hy-form-header__title">Xavfsizlik</h1>
+        <span style="width:28px"></span>
+    </div>
+</div>
+
+<div class="hy-form-page">
+    <div class="hy-warning-banner">
+        <i class="bi bi-shield-lock-fill text-xl flex-shrink-0" aria-hidden="true"></i>
+        <div>
+            <b>Muhim:</b> Username yoki parol o‘zgarsa, eski <b>Magic Link</b> bekor bo‘ladi.
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="hy-form-card">
+            <div class="hy-form-group">
+                <label class="hy-form-label" for="id_new_username">Username</label>
+                <div class="relative">
+                    <input id="id_new_username" type="text" name="new_username" value="{{ request.user.username }}" class="hy-form-input" style="padding-left:40px" placeholder="Yangi username" autocomplete="username">
+                    <i class="bi bi-at absolute text-slate-400" style="left:14px;top:50%;transform:translateY(-50%)" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="hy-form-group">
+                <label class="hy-form-label" for="passInput">Yangi parol (ixtiyoriy)</label>
+                <div class="relative">
+                    <input type="password" id="passInput" name="new_password" class="hy-form-input" style="padding-left:40px;padding-right:44px" placeholder="Bo‘sh qoldirish mumkin" autocomplete="new-password">
+                    <i class="bi bi-key-fill absolute text-slate-400" style="left:14px;top:50%;transform:translateY(-50%)" aria-hidden="true"></i>
+                    <button type="button" onclick="togglePass()" class="absolute border-0 bg-transparent text-slate-400 cursor-pointer" style="right:8px;top:50%;transform:translateY(-50%);padding:6px;border-radius:8px" aria-label="Parolni ko‘rsatish">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <p class="text-xs mb-4" style="color:var(--hy-text-muted);line-height:1.45">Parolni o‘zgartirmasangiz, bo‘sh qoldiring.</p>
+            <button type="submit" class="hy-btn-primary-lg">Saqlash</button>
+            <a href="{% url 'logout' %}" class="hy-btn-danger-outline text-decoration-none">
+                <i class="bi bi-box-arrow-right"></i> Chiqish
+            </a>
+        </div>
+    </form>
+
+    <h2 class="hy-form-header__title mt-10 mb-2 px-1">Maxfiylik va compose</h2>
+    <p class="text-xs mb-4 px-1" style="color:var(--hy-text-muted)">Instagramga o‘xshash qulay sozlamalar.</p>
+    <form method="POST" class="hy-form-card">
+        {% csrf_token %}
+        <input type="hidden" name="settings_section" value="prefs">
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_default_post_visibility">Post ko‘rinishi (default)</label>
+            <select id="id_default_post_visibility" name="default_post_visibility" class="hy-form-input" style="padding-left:14px">
+                <option value="0" {% if request.user.default_post_visibility == 0 %}selected{% endif %}>Faqat men</option>
+                <option value="1" {% if request.user.default_post_visibility == 1 %}selected{% endif %}>Faqat havola</option>
+                <option value="2" {% if request.user.default_post_visibility == 2 %}selected{% endif %}>Faqat yaqinlarim</option>
+                <option value="3" {% if request.user.default_post_visibility == 3 %}selected{% endif %}>Hammaga ochiq</option>
+            </select>
+        </div>
+        <div class="hy-form-group flex items-center gap-3">
+            <input type="checkbox" id="id_compose_autosave_enabled" name="compose_autosave_enabled" class="rounded border-slate-300" {% if request.user.compose_autosave_enabled %}checked{% endif %}>
+            <label for="id_compose_autosave_enabled" class="text-sm font-semibold cursor-pointer" style="color:var(--hy-text)">Autosave (draft’ni brauzerda saqlash)</label>
+        </div>
+        <div class="hy-form-group flex items-center gap-3">
+            <input type="checkbox" id="id_allow_yaqin_requests" name="allow_yaqin_requests" class="rounded border-slate-300" {% if request.user.allow_yaqin_requests %}checked{% endif %}>
+            <label for="id_allow_yaqin_requests" class="text-sm font-semibold cursor-pointer" style="color:var(--hy-text)">Yaqin so‘rovlariga ruxsat</label>
+        </div>
+        <div class="hy-form-group mb-0 flex items-center gap-3">
+            <input type="checkbox" id="id_allow_collab_invites" name="allow_collab_invites" class="rounded border-slate-300" {% if request.user.allow_collab_invites %}checked{% endif %}>
+            <label for="id_allow_collab_invites" class="text-sm font-semibold cursor-pointer" style="color:var(--hy-text)">Hammualliflik takliflariga ruxsat</label>
+        </div>
+        <button type="submit" class="hy-btn-primary-lg mt-4">Saqlash</button>
+    </form>
+
+    <h2 class="hy-form-header__title mt-10 mb-2 px-1">Xotira eslatmasi</h2>
+    <p class="text-xs mb-4 px-1" style="color:var(--hy-text-muted)">Tanlangan kunda profilda yumshoq eslatma.</p>
+    <form method="POST" class="hy-form-card">
+        {% csrf_token %}
+        <div class="hy-form-group flex items-center gap-3">
+            <input type="checkbox" id="id_reminder_enabled" name="reminder_enabled" class="rounded border-slate-300" {% if request.user.reminder_enabled %}checked{% endif %}>
+            <label for="id_reminder_enabled" class="text-sm font-semibold cursor-pointer" style="color:var(--hy-text)">Eslatmani yoqish</label>
+        </div>
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_reminder_weekday">Hafta kuni</label>
+            <select id="id_reminder_weekday" name="reminder_weekday" class="hy-form-input" style="padding-left:14px">
+                <option value="0" {% if request.user.reminder_weekday == 0 %}selected{% endif %}>Dushanba</option>
+                <option value="1" {% if request.user.reminder_weekday == 1 %}selected{% endif %}>Seshanba</option>
+                <option value="2" {% if request.user.reminder_weekday == 2 %}selected{% endif %}>Chorshanba</option>
+                <option value="3" {% if request.user.reminder_weekday == 3 %}selected{% endif %}>Payshanba</option>
+                <option value="4" {% if request.user.reminder_weekday == 4 %}selected{% endif %}>Juma</option>
+                <option value="5" {% if request.user.reminder_weekday == 5 %}selected{% endif %}>Shanba</option>
+                <option value="6" {% if request.user.reminder_weekday == 6 %}selected{% endif %}>Yakshanba</option>
+            </select>
+        </div>
+        <div class="hy-form-group mb-0">
+            <label class="hy-form-label" for="id_reminder_hour">Soat (0–23)</label>
+            <input id="id_reminder_hour" type="number" name="reminder_hour" min="0" max="23" value="{{ request.user.reminder_hour }}" class="hy-form-input" style="padding-left:14px">
+        </div>
+        <button type="submit" class="hy-btn-primary-lg mt-4">Eslatmani saqlash</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePass() {
+        var input = document.getElementById('passInput');
+        var icon = document.getElementById('eyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% load static %}
+{% load charity_extras %}
+
+{% block title %}{{ case.title }} — Hayriyalar{% endblock %}
+
+{% block head_meta %}
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ case.title }} — Hayriyalar | MYFEEL">
+<meta property="og:url" content="{{ charity_share_url }}">
+<meta property="og:description" content="{{ charity_og_description }}">
+{% if charity_og_image %}
+<meta property="og:image" content="{{ charity_og_image }}">
+<meta name="twitter:card" content="summary_large_image">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<article class="hy-charity-detail hy-charity-detail--lean">
+    <nav class="hy-charity-detail__back" aria-label="Navigatsiya">
+        <a href="{% url 'charity_list' %}" class="hy-charity-detail__back-link">← Orqaga</a>
+        {% if user.is_superuser %}
+        <a href="{% url 'charity_edit' slug=case.slug %}" class="hy-charity-detail__edit">Tahrir</a>
+        {% endif %}
+    </nav>
+
+    {% if user.is_superuser and not case.is_public_on_site %}
+    <p class="hy-charity-detail__draft-badge" role="status">{{ case.get_status_display }} · faqat siz uchun</p>
+    {% endif %}
+
+    <header class="hy-charity-detail__head">
+        <div class="hy-charity-detail__badges">
+            <span class="hy-charity-detail__badge hy-charity-detail__badge--muted">{{ case.get_category_display }}</span>
+            {% if case.status == "closed" %}
+            <span class="hy-charity-detail__badge hy-charity-detail__badge--closed">Yopilgan</span>
+            {% endif %}
+            {% if case.is_publicly_verified %}
+            <span class="hy-charity-detail__badge hy-charity-detail__badge--ok">Tekshirilgan</span>
+            {% endif %}
+        </div>
+        <p class="hy-charity-detail__loc">{{ case.get_region_display }} · {{ case.district }}</p>
+        <h1 class="hy-charity-detail__title">{{ case.title }}</h1>
+        <p class="hy-charity-detail__teaser">{{ case.teaser }}</p>
+    </header>
+
+    <section class="hy-charity-share" aria-labelledby="hy-charity-share-h">
+        <h2 id="hy-charity-share-h" class="hy-charity-share__h">Ulashish</h2>
+        <p class="hy-charity-share__hint">Havolani nusxalang.</p>
+        <div class="hy-charity-share__row">
+            <button type="button" class="hy-charity-share__btn" id="hy-charity-copy-link" data-url="{{ charity_share_url }}">
+                <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                Havolani nusxalash
+            </button>
+        </div>
+    </section>
+
+    {% if case.video %}
+    <div class="hy-charity-detail__video-wrap">
+        <video
+            class="hy-charity-detail__video"
+            controls
+            playsinline
+            preload="metadata"
+            {% if case.poster %}poster="{{ case.poster.url }}"{% endif %}
+        >
+            <source src="{{ case.video.url }}" type="video/mp4">
+        </video>
+    </div>
+    {% elif case.poster %}
+    <figure class="hy-charity-detail__figure">
+        <img src="{{ case.poster.url }}" alt="" class="hy-charity-detail__poster" loading="lazy" decoding="async">
+    </figure>
+    {% endif %}
+
+    <section class="hy-charity-detail__article" aria-label="Batafsil">
+        <div class="hy-charity-detail__body">{{ case.body|linebreaksbr }}</div>
+    </section>
+
+    {% if case.goal_amount %}
+    <section class="hy-charity-detail__goal" aria-labelledby="hy-charity-goal-h">
+        <h2 id="hy-charity-goal-h" class="hy-charity-detail__h2 hy-charity-detail__h2--inline">Yig‘im</h2>
+        <div class="hy-charity-detail__goal-row">
+            <span
+                class="hy-charity-detail__goal-sum"
+                title="{{ case.collected_amount|default:0|uzs_spaced }} so‘m"
+            >{{ case.collected_amount|default:0|uzs_compact }}</span>
+            <span
+                class="hy-charity-detail__goal-of"
+                title="{{ case.goal_amount|uzs_spaced }} so‘m"
+            >/ {{ case.goal_amount|uzs_compact }}</span>
+        </div>
+        <p class="hy-charity-detail__goal-micro">{{ case.collected_amount|default:0|uzs_spaced }} / {{ case.goal_amount|uzs_spaced }} so‘m</p>
+        <div
+            class="hy-charity-detail__goal-track"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="{{ case.collection_percent|default:0 }}"
+            aria-valuetext="{{ case.collection_percent|default:0 }}% — yig‘ilgan {{ case.collected_amount|default:0|uzs_compact }}, maqsad {{ case.goal_amount|uzs_compact }}"
+        >
+            <span class="hy-charity-detail__goal-fill" style="width: {{ case.collection_percent|default:0 }}%"></span>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="hy-charity-detail__contacts" aria-label="Aloqa">
+        <h2 class="hy-charity-detail__h2 hy-charity-detail__h2--inline">Aloqa</h2>
+        <dl class="hy-charity-detail__dl">
+            <div class="hy-charity-detail__row">
+                <dt>Manzil</dt>
+                <dd>
+                    {{ case.address|linebreaksbr }}
+                    {% if case.latitude is not None and case.longitude is not None %}
+                    <div class="hy-charity-detail__map-wrap">
+                        {% if google_maps_api_key %}
+                        <div
+                            id="hy-charity-detail-map"
+                            class="hy-charity-detail-map"
+                            data-lat="{{ case.latitude }}"
+                            data-lng="{{ case.longitude }}"
+                            data-api-key="{{ google_maps_api_key }}"
+                            role="img"
+                            aria-label="Google xarita"
+                        ></div>
+                        {% else %}
+                        <p class="hy-charity-map-fallback hy-charity-map-fallback--inline" role="note">Xarita uchun <code>GOOGLE_MAPS_API_KEY</code> kerak. Quyidagi havolalar orqali oching.</p>
+                        {% endif %}
+                        <div class="hy-charity-detail__map-links">
+                            <a class="hy-charity-detail__map-link" target="_blank" rel="noopener noreferrer" href="https://yandex.com/maps/?pt={{ case.longitude }},{{ case.latitude }}&amp;z=15&amp;l=map">Yandex</a>
+                            <a class="hy-charity-detail__map-link" target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat={{ case.latitude }}&amp;mlon={{ case.longitude }}#map=15/{{ case.latitude }}/{{ case.longitude }}">OSM</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="hy-charity-detail__row">
+                <dt>Telefon</dt>
+                <dd class="hy-charity-detail__phone-row">
+                    <a href="tel:{{ case.contact_phone }}">{{ case.contact_phone }}</a>
+                    <button type="button" class="hy-copy-btn hy-copy-btn--sm" id="hy-copy-phone" data-phone="{{ case.contact_phone }}">Nusxa</button>
+                </dd>
+            </div>
+            {% if case.payment_click_url or case.payment_payme_url or case.payment_other_url %}
+            <div class="hy-charity-detail__row">
+                <dt>Tez to‘lov</dt>
+                <dd>
+                    <div class="hy-charity-quick-pay" role="group" aria-label="Click, Payme va boshqa ilovalar">
+                        {% if case.payment_click_url %}
+                        <a href="{{ case.payment_click_url }}" class="hy-charity-quick-pay__btn hy-charity-quick-pay__btn--click" target="_blank" rel="noopener noreferrer">Click</a>
+                        {% endif %}
+                        {% if case.payment_payme_url %}
+                        <a href="{{ case.payment_payme_url }}" class="hy-charity-quick-pay__btn hy-charity-quick-pay__btn--payme" target="_blank" rel="noopener noreferrer">Payme</a>
+                        {% endif %}
+                        {% if case.payment_other_url %}
+                        <a href="{{ case.payment_other_url }}" class="hy-charity-quick-pay__btn hy-charity-quick-pay__btn--other" target="_blank" rel="noopener noreferrer">{{ case.payment_other_label|default:"Boshqa havola" }}</a>
+                        {% endif %}
+                    </div>
+                </dd>
+            </div>
+            {% endif %}
+            {% if case.payment_info %}
+            <div class="hy-charity-detail__row">
+                <dt>To‘lov</dt>
+                <dd>
+                    <div id="hy-charity-payment" class="hy-charity-payment">
+                        <label class="hy-visually-hidden" for="hy-payment-raw">To‘lov ma’lumoti</label>
+                        <textarea id="hy-payment-raw" class="hy-visually-hidden" readonly>{{ case.payment_info }}</textarea>
+                        <div class="hy-plastic-card hy-plastic-card--generic" id="hy-plastic-card" aria-hidden="true">
+                            <div class="hy-plastic-card__shine" aria-hidden="true"></div>
+                            {% include "charities/includes/plastic_card_marks.html" %}
+                            <div class="hy-plastic-card__top">
+                                <span class="hy-plastic-card__chip"></span>
+                                <span class="hy-plastic-card__contactless"></span>
+                            </div>
+                            <div class="hy-plastic-card__pan" id="hy-plastic-pan"></div>
+                            <div class="hy-plastic-card__meta" id="hy-plastic-meta"></div>
+                        </div>
+                        <div class="hy-charity-payment__toolbar hy-charity-payment__toolbar--card">
+                            <button type="button" class="hy-copy-btn hy-copy-btn--sm" id="hy-copy-pan-digits" hidden>Karta raqami</button>
+                            <button type="button" class="hy-copy-btn hy-copy-btn--sm" id="hy-copy-payment-all">Hammasini nusxalash</button>
+                        </div>
+                        <div id="hy-payment-digits" class="hy-payment-digits" aria-live="polite"></div>
+                    </div>
+                </dd>
+            </div>
+            {% endif %}
+        </dl>
+    </section>
+
+    <section class="hy-charity-updates" id="hy-charity-updates" aria-labelledby="hy-charity-updates-h">
+        <h2 id="hy-charity-updates-h" class="hy-charity-detail__h2 hy-charity-detail__h2--inline">Yangilanishlar</h2>
+
+        {% if updates %}
+        <ul class="hy-charity-updates__list">
+            {% for u in updates %}
+            <li class="hy-charity-updates__item">
+                <p class="hy-charity-updates__msg">{{ u.message|linebreaksbr }}</p>
+                <p class="hy-charity-updates__meta">
+                    {{ u.created_at|date:"d.m.Y · H:i" }}{% if u.created_by %} · {{ u.created_by.username }}{% endif %}
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="hy-charity-updates__empty">Hozircha yangilanish yo‘q.</p>
+        {% endif %}
+
+        {% if user.is_superuser %}
+        <form method="post" action="{% url 'charity_add_update' slug=case.slug %}" class="hy-charity-updates__form">
+            {% csrf_token %}
+            <label class="hy-visually-hidden" for="id_update_message">Yangilanish</label>
+            <textarea
+                id="id_update_message"
+                name="message"
+                class="hy-charity-updates__textarea"
+                rows="3"
+                maxlength="1200"
+                placeholder="Masalan: «Bugun dori xarid qilindi, cheklar yuklandi»"
+            ></textarea>
+            <div class="hy-charity-updates__actions">
+                <button type="submit" class="hy-charity-updates__submit">Yangilanish qo‘shish</button>
+                <a class="hy-charity-updates__jump" href="#hy-main-content">↑</a>
+            </div>
+        </form>
+        {% endif %}
+    </section>
+
+    {% if related_cases %}
+    <section class="hy-charity-related" aria-label="Boshqalar">
+        <h2 class="hy-charity-detail__h2 hy-charity-detail__h2--inline">Yana shu yo‘nalishda</h2>
+        <ul class="hy-charity-related__list">
+            {% for r in related_cases %}
+            <li><a href="{{ r.get_absolute_url }}">{{ r.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    {% if user.is_authenticated and case.is_public_on_site %}
+    <section class="hy-charity-complaint hy-charity-complaint--lean" aria-label="Shikoyat">
+        <form method="post" action="{% url 'charity_complaint' slug=case.slug %}" class="hy-charity-complaint__form hy-charity-complaint__form--simple">
+            {% csrf_token %}
+            {% if complaint_form.non_field_errors %}
+            <div class="hy-charity-complaint__alert hy-charity-complaint__alert--err" role="alert">{{ complaint_form.non_field_errors }}</div>
+            {% endif %}
+            <h2 class="hy-charity-complaint__title-simple" id="hy-charity-complaint-h">Shikoyat</h2>
+            <div class="hy-charity-complaint__field">
+                <div class="hy-charity-complaint__label-row">
+                    <label class="hy-charity-complaint__label" for="id_complaint_message">Matn</label>
+                    <span class="hy-charity-complaint__counter" aria-live="polite"><span id="hy-complaint-len">0</span>/2000</span>
+                </div>
+                {{ complaint_form.message }}
+                {% if complaint_form.message.errors %}
+                <div class="hy-charity-complaint__field-error">{{ complaint_form.message.errors }}</div>
+                {% endif %}
+            </div>
+            <button type="submit" class="hy-charity-complaint__submit">Yuborish</button>
+        </form>
+    </section>
+    {% elif not user.is_authenticated and case.is_public_on_site %}
+    <div class="hy-charity-complaint hy-charity-complaint--guest hy-charity-complaint--lean">
+        <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="hy-charity-complaint__login-card">
+            <span class="hy-charity-complaint__login-title">Kirish</span>
+            <span class="hy-charity-complaint__login-cta">Shikoyat uchun →</span>
+        </a>
+    </div>
+    {% endif %}
+</article>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'js/charities-detail.js' %}"></script>
+{% endblock %}

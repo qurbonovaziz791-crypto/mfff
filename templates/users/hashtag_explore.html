@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% load blog_extras %}
+
+{% block title %} | #{{ tag }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-6 pb-24">
+    <h1 class="text-lg font-bold text-slate-900 mb-1">#{{ tag }}</h1>
+    <p class="text-xs text-slate-500 mb-6">Ochiq xotiralar bo‘yicha qidiruv (barcha foydalanuvchilar)</p>
+    <div class="space-y-4">
+        {% for post in posts %}
+        <article class="memory-card">
+            <div class="memory-card__head">
+                <div>
+                    <h2 class="memory-card__title">
+                        <a href="{% url 'post_detail' username=post.author_username post_id=post.id %}" class="text-inherit no-underline hover:text-orange-600">{{ post.title }}</a>
+                    </h2>
+                    <div class="memory-card__time text-xs">
+                        <a href="{% url 'profile' username=post.author_username %}" class="text-orange-600 font-medium">@{{ post.author_username }}</a>
+                        · {{ post.created_at|date:"d M, Y" }}
+                    </div>
+                </div>
+                <span class="memory-card__mood">{{ post.mood|mood_emoji }}</span>
+            </div>
+            <p class="memory-card__body text-sm">{{ post.body|truncatechars:180 }}</p>
+        </article>
+        {% empty %}
+        <p class="text-sm text-slate-500 text-center py-12">Hozircha hech narsa yo‘q.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

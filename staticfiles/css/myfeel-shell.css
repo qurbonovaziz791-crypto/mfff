@@ -1,0 +1,202 @@
+/**
+ * MYFEEL shell layer — “Flame-gradient” + “Glass-effect” utilities,
+ * HTMX progress, skeletons. Sahifa foni doim issiq yorug‘ (app.css bilan).
+ * Loaded after app.css so these tokens and overrides win where intended.
+ */
+
+/* ----- Chrome (scrollbars, input) — sunlit UI ----- */
+html {
+  color-scheme: light;
+}
+
+/* Skip link — keyboard / screen reader */
+.mf-skip {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 10001;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: var(--lux-deep-red, #7f1d1d);
+  background: rgba(255, 250, 245, 0.95);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.15);
+  transform: translateY(-120%);
+  transition: transform 0.2s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+.mf-skip:focus {
+  transform: translateY(0);
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
+/* ----- Tailwind-like utility layer (no JIT build required) ----- */
+.mf-flame-gradient {
+  background: var(--lux-gradient-fire, linear-gradient(135deg, #9f1239, #ea580c, #fbbf24));
+}
+.mf-flame-text {
+  background: var(--lux-gradient-fire, linear-gradient(135deg, #9f1239, #ea580c, #fbbf24));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.mf-glass-effect {
+  background: rgba(255, 250, 245, 0.72);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border: 1px solid rgba(249, 115, 22, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+/* ----- HTMX: global top progress (driven by html.mf-htmx-loading + JS) ----- */
+#mf-htmx-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  pointer-events: none;
+  transform-origin: left center;
+  transform: scaleX(0);
+  opacity: 0;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
+  background: linear-gradient(90deg, #be123c, #ff4500, #ffd700);
+  box-shadow: 0 0 14px rgba(251, 146, 60, 0.5);
+}
+html.mf-htmx-loading #mf-htmx-progress {
+  opacity: 1;
+}
+
+/* Classic htmx-indicator visibility (optional per-request hx-indicator) */
+.htmx-indicator {
+  display: none !important;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: block !important;
+}
+
+/* ----- Skeleton placeholders (use inside HTMX partials / swaps) ----- */
+.mf-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(251, 191, 36, 0.12) 0%,
+    rgba(255, 247, 237, 0.55) 50%,
+    rgba(251, 191, 36, 0.12) 100%
+  );
+  background-size: 200% 100%;
+  animation: mf-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+@keyframes mf-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.mf-skeleton--text {
+  height: 0.875rem;
+  width: 100%;
+  max-width: 100%;
+}
+.mf-skeleton--title {
+  height: 1.25rem;
+  width: 60%;
+}
+.mf-skeleton--avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mf-skeleton--card {
+  min-height: 120px;
+  border-radius: var(--radius, 14px);
+}
+.mf-skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-skeleton {
+    animation: none;
+    background: rgba(251, 191, 36, 0.15);
+  }
+}
+
+/* ----- Inline SVG nav icons (Lucide-style strokes + flame gradient) ----- */
+.mf-nav-icon {
+  width: 1.375rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+  display: block;
+}
+.nav-link .mf-nav-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.65))
+    drop-shadow(0 2px 10px rgba(249, 115, 22, 0.22));
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.nav-link:hover .mf-nav-icon {
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.75))
+    drop-shadow(0 3px 14px rgba(251, 146, 60, 0.35));
+  transform: scale(1.04);
+}
+.nav-link.active .mf-nav-icon {
+  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.45)) drop-shadow(0 2px 4px rgba(220, 38, 38, 0.2));
+}
+.bottom-nav a .mf-nav-icon {
+  width: 1.375rem;
+  height: 1.375rem;
+  opacity: 0.55;
+  filter: drop-shadow(0 1px 3px rgba(249, 115, 22, 0.15));
+  transition: opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+.bottom-nav a:hover .mf-nav-icon {
+  opacity: 0.9;
+  transform: scale(1.08);
+  filter: drop-shadow(0 2px 10px rgba(251, 146, 60, 0.35));
+}
+.bottom-nav a.active .mf-nav-icon {
+  opacity: 1;
+  filter: drop-shadow(0 0 14px rgba(251, 191, 36, 0.55)) drop-shadow(0 2px 6px rgba(234, 88, 12, 0.3));
+}
+
+/* ----- Premium sidebar glass — har doim yorug‘, asosiy fon bilan uyg‘un ----- */
+.sidebar {
+  background: rgba(255, 250, 245, 0.7);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-right: 1px solid rgba(249, 115, 22, 0.1);
+}
+
+/* ----- Sahifa kanvasi: app.css dagi issiq krem (tizim qorong‘i rejimida ham) ----- */
+body {
+  background: linear-gradient(180deg, #fdf8f4 0%, #faf5f0 40%, #fff7ed 100%);
+  color: var(--lux-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-link .mf-nav-icon,
+  .bottom-nav a .mf-nav-icon {
+    transition: none;
+  }
+  .nav-link:hover .mf-nav-icon,
+  .bottom-nav a:hover .mf-nav-icon {
+    transform: none;
+  }
+}

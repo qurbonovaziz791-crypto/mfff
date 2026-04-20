@@ -1,0 +1,30 @@
+{% load static %}
+<header class="hy-topbar hy-topbar--grid" role="banner">
+    <div class="hy-topbar__left">
+        {% if user.is_authenticated %}
+        <details class="hy-account-dropdown hy-account-dropdown--topbar">
+            <summary class="hy-topbar-menu-summary" aria-label="Hisob menyusi">
+                <span class="hy-topbar-menu-summary__ico">
+                    <span class="hy-ico-closed">{% include "includes/hybrid_icon.html" with name="menu" %}</span>
+                    <span class="hy-ico-open">{% include "includes/hybrid_icon.html" with name="x" %}</span>
+                </span>
+            </summary>
+            {% include "includes/hybrid_account_panel.html" %}
+        </details>
+        {% endif %}
+    </div>
+    <a href="{% if user.is_authenticated %}{{ url_feed }}{% else %}{{ url_login }}{% endif %}" class="hy-topbar__brand hy-topbar__brand--center">
+        <img src="{% static 'logo/mf.png' %}" class="hy-topbar__logo-img" alt="MYFEEL" loading="eager" decoding="async">
+    </a>
+    <div class="hy-topbar__actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'user_search' %}" class="hy-icon-btn hy-icon-btn--wrap hy-icon-btn--search {% if request.path == '/search/' %}hy-icon-btn--active{% endif %}" aria-label="Qidiruv">{% include "includes/hybrid_icon.html" with name="search" %}</a>
+        <a href="{% url 'charity_list' %}" class="hy-icon-btn hy-icon-btn--wrap {% if request.path|slice:':11' == '/hayriyalar' %}hy-icon-btn--active{% endif %}" aria-label="Hayriyalar">{% include "includes/hybrid_icon.html" with name="gift" %}</a>
+        <a href="{% url 'compose' %}" class="hy-icon-btn hy-icon-btn--wrap" aria-label="His qilish">{% include "includes/hybrid_icon.html" with name="plus" %}</a>
+        <a href="{{ url_activity }}" class="hy-icon-btn hy-icon-btn--wrap {% if request.path == url_activity %}hy-icon-btn--active{% endif %}" aria-label="Bildirishnomalar{% if activity_unread_count %} — yangi{% endif %}">{% include "includes/hybrid_icon.html" with name="bell" %}{% include "includes/activity_nav_badge.html" %}</a>
+        {% else %}
+        <a href="{% url 'charity_list' %}" class="hy-icon-btn hy-icon-btn--wrap {% if request.path|slice:':11' == '/hayriyalar' %}hy-icon-btn--active{% endif %}" aria-label="Hayriyalar">{% include "includes/hybrid_icon.html" with name="gift" %}</a>
+        <a href="{{ url_login }}" class="hy-icon-btn" aria-label="Kirish">{% include "includes/hybrid_icon.html" with name="login" %}</a>
+        {% endif %}
+    </div>
+</header>

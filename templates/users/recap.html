@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% load blog_extras %}
+
+{% block title %} | {{ year }} xulosasi{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-8 pb-24">
+    <div class="flex items-center justify-between gap-4 mb-8">
+        <h1 class="text-xl font-bold text-slate-900">{{ year }} xulosasi</h1>
+        <form method="get" class="flex items-center gap-2">
+            <label class="text-xs text-slate-500 sr-only" for="yr">Yil</label>
+            <input id="yr" type="number" name="year" value="{{ year }}" min="2020" max="2100" class="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold">
+            <button type="submit" class="rounded-xl bg-slate-900 text-white text-sm font-semibold px-4 py-2">Ko‘rish</button>
+        </form>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 mb-8">
+        <p class="text-3xl font-bold text-slate-900">{{ stats.total }} <span class="text-base font-semibold text-slate-500">xotira</span></p>
+        {% if stats.top_hashtag %}
+        <p class="text-sm text-slate-600">Eng ko‘p ishlatilgan hashtag: <a class="text-orange-600 font-semibold" href="{% url 'hashtag_explore' tag=stats.top_hashtag|cut:'#' %}">{{ stats.top_hashtag }}</a></p>
+        {% endif %}
+        {% if stats.by_mood %}
+        <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Kayfiyatlar</p>
+            <ul class="space-y-1 text-sm">
+                {% for mood_key, count in stats.by_mood.items %}
+                <li class="flex justify-between"><span>{{ mood_key|mood_label }}</span><span class="font-semibold text-slate-700">{{ count }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <a href="{% url 'recap_export_txt' username=profile_user.username %}?year={{ year }}" class="inline-flex items-center justify-center gap-2 w-full rounded-2xl border-2 border-orange-200 bg-orange-50 text-orange-800 font-semibold py-3 px-4 text-sm hover:bg-orange-100 transition-colors">
+        <i class="bi bi-download"></i> Matn sifatida yuklab olish (.txt)
+    </a>
+</div>
+{% endblock %}

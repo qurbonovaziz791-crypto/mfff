@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" class="h-full hy-shell">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title>MYFEEL | {% block title %}{% endblock %}</title>
+    {% block head_meta %}{% endblock %}
+
+    <link rel="icon" href="{% static 'logo/mf.png' %}">
+
+    <link rel="preload" as="image" href="{% static 'logo/mf.png' %}" fetchpriority="high">
+    <link rel="preload" as="style" href="{% static 'css/hybrid-shell.css' %}">
+    <link rel="preload" as="style" href="{% static 'css/myfeel-shell.css' %}">
+    <link rel="preload" as="style" href="{% static 'css/app.css' %}">
+    {# Vendor CSS: async-load to unblock first paint #}
+    <link rel="stylesheet" href="{% static 'vendor/tailwind/tailwind-fallback.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="{% static 'vendor/tailwind/tailwind-fallback.css' %}">
+        <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+    </noscript>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/myfeel-shell.css' %}">
+    <link rel="stylesheet" href="{% static 'css/hybrid-shell.css' %}">
+
+    <script defer src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
+    <script defer src="{% static 'js/myfeel-shell.js' %}"></script>
+    <script defer src="{% static 'vendor/alpine/alpine.min.js' %}"></script>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="hy-body h-full min-h-0 overflow-x-hidden antialiased">
+
+    {% url 'login' as url_login %}
+    {% if user.is_authenticated %}
+        {% url 'home_feed' as url_feed %}
+        {% url 'profile' username=user.username as url_my_profile %}
+        {% url 'profile_edit' as url_profile_edit %}
+        {% url 'profile_settings' as url_profile_settings %}
+        {% url 'recap' username=user.username as url_recap %}
+        {% url 'recap_export' username=user.username as url_recap_export %}
+        {% url 'activity' as url_activity %}
+    {% endif %}
+
+    <div id="mf-htmx-progress" class="mf-htmx-progress" aria-hidden="true"></div>
+
+    <a href="#hy-main-content" class="hy-skip">Asosiy kontentga o‘tish</a>
+
+    <div id="hy-speed" class="hy-speed hy-speed--fixed" aria-label="Tezlik indikatori" title="Sahifa va so‘rovlar tezligi">
+        <span class="hy-speed__pulse" aria-hidden="true"></span>
+        <span class="hy-speed__label">Speed</span>
+        <span class="hy-speed__value" data-hy-speed-value>—</span>
+        <span class="hy-speed__unit">ms</span>
+    </div>
+
+    <div class="hy-app">
+        {% include "includes/hybrid_navigation.html" %}
+
+        <div class="hy-main">
+            {% include "includes/hybrid_header.html" %}
+
+            <div id="hy-main-content" class="hy-content" tabindex="-1">
+                {% if messages %}
+                <div class="hy-messages" role="status">
+                    {% for message in messages %}
+                    <div class="hy-msg {% if 'success' in message.tags %}hy-msg--ok{% elif 'error' in message.tags %}hy-msg--err{% elif 'warning' in message.tags %}hy-msg--warn{% else %}hy-msg--info{% endif %}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.body.addEventListener('htmx:configRequest', function (event) {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

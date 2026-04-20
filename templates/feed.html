@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lenta{% endblock %}
+
+{% block content %}
+<div class="hy-feed hy-feed-page">
+    {% include "includes/yaqin_incoming_banner.html" %}
+
+    <div class="hy-feed-layout">
+        <main class="hy-feed-main">
+            <div class="hy-feed__stream" id="hy-feed-stream">
+                {% for post in posts %}
+                    {% include "includes/post_card.html" with show_mark_seen=True %}
+                {% empty %}
+                <div class="hy-feed-empty">
+                    <p>Hozircha lenta bo‘sh. Boshqa foydalanuvchilar bilan <strong>yaqin</strong> bo‘ling — ularning xotiralari shu yerda paydo bo‘ladi.</p>
+                    <a href="{% url 'profile' user.username %}">Profilingizga o‘tish</a>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if posts.has_next %}
+            <div class="hy-load-more">
+                <a href="?page={{ posts.next_page_number }}">Yana yuklash</a>
+            </div>
+            {% endif %}
+        </main>
+
+        {% if reco_rows %}
+        <aside class="hy-feed-right" aria-label="Rekomendatsiya">
+            <section class="hy-reco">
+                <div class="hy-reco__head">
+                    <h2 class="hy-reco__title">Rekomendatsiya</h2>
+                    <a class="hy-reco__link" href="{% url 'user_search' %}">Ko‘proq</a>
+                </div>
+                <div class="hy-reco__scroller" role="list">
+                    {% for r in reco_rows %}
+                    <div class="hy-reco__card" role="listitem">
+                        <a class="hy-reco__who" href="{% url 'profile' username=r.user.username %}">
+                            {% if r.user.photo %}
+                            <img class="hy-reco__avatar" src="{{ r.user.photo.url }}" alt="" width="56" height="56">
+                            {% else %}
+                            <span class="hy-reco__ph">{{ r.user.username|make_list|first|upper }}</span>
+                            {% endif %}
+                            <span class="hy-reco__meta">
+                                <span class="hy-reco__name">{{ r.display }}</span>
+                                <span class="hy-reco__handle">@{{ r.user.username }}</span>
+                                {% if r.mutual and r.mutual > 0 %}
+                                <span class="hy-reco__mutual">{{ r.mutual }} umumiy</span>
+                                {% endif %}
+                            </span>
+                        </a>
+
+                        <div class="hy-reco__actions">
+                            {% if r.state == "pending_in" %}
+                            <form method="post" action="{% url 'yaqin_action' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="yaqin_accept">
+                                <input type="hidden" name="username" value="{{ r.user.username }}">
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button class="hy-reco__btn hy-reco__btn--primary" type="submit">Qabul</button>
+                            </form>
+                            {% elif r.state == "pending_out" %}
+                            <form method="post" action="{% url 'yaqin_action' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="yaqin_cancel">
+                                <input type="hidden" name="username" value="{{ r.user.username }}">
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button class="hy-reco__btn" type="submit">Bekor</button>
+                            </form>
+                            {% else %}
+                                {% if r.allow_requests %}
+                                <form method="post" action="{% url 'yaqin_action' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="yaqin_request">
+                                    <input type="hidden" name="username" value="{{ r.user.username }}">
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <button class="hy-reco__btn hy-reco__btn--primary" type="submit">Yaqinlashish</button>
+                                </form>
+                                {% else %}
+                                <span class="hy-reco__pill">Yopiq</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </aside>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

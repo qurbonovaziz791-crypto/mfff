@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Hayriyani tahrirlash{% else %}Hayriya qo‘shish{% endif %}{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{% url 'charity_list' %}" aria-label="Hayriyalar">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+        <h1 class="hy-form-header__title">{% if is_edit %}Tahrirlash{% else %}Hayriya qo‘shish{% endif %}</h1>
+        <span style="width:34px" aria-hidden="true"></span>
+    </div>
+</div>
+
+<div class="hy-form-page">
+    <p class="hy-charity-form__hint">Faqat <strong>superuser</strong> uchun. Ma’lumotlarni tekshirib, kerak bo‘lsa avval nashr qilmagan holda saqlang.</p>
+
+    <form method="post" class="hy-form-card" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="hy-msg hy-msg--err" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_title">Sarlavha</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="hy-field-error">{{ form.title.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_slug">Slug (URL)</label>
+            {{ form.slug }}
+            <p class="hy-helptext">Bo‘sh qoldirsangiz, sarlavhadan avtomatik yaratiladi.</p>
+            {% if form.slug.errors %}<div class="hy-field-error">{{ form.slug.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group hy-form-row2">
+            <div>
+                <label class="hy-form-label" for="id_status">Holat</label>
+                {{ form.status }}
+                <p class="hy-helptext">«Nashr etilgan» yoki «Yopilgan» bo‘lsa sayt mehmonlari ko‘radi.</p>
+                {% if form.status.errors %}<div class="hy-field-error">{{ form.status.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="hy-form-label" for="id_category">Kategoriya</label>
+                {{ form.category }}
+                {% if form.category.errors %}<div class="hy-field-error">{{ form.category.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_teaser">Qisqa tavsif (kartochkada)</label>
+            {{ form.teaser }}
+            {% if form.teaser.errors %}<div class="hy-field-error">{{ form.teaser.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_body">Batafsil matn</label>
+            {{ form.body }}
+            {% if form.body.errors %}<div class="hy-field-error">{{ form.body.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group hy-form-row2">
+            <div>
+                <label class="hy-form-label" for="id_region">Viloyat</label>
+                {{ form.region }}
+                {% if form.region.errors %}<div class="hy-field-error">{{ form.region.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="hy-form-label" for="id_district">Tuman / shahar</label>
+                {{ form.district }}
+                {% if form.district.errors %}<div class="hy-field-error">{{ form.district.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_address">Manzil</label>
+            {{ form.address }}
+            {% if form.address.errors %}<div class="hy-field-error">{{ form.address.errors }}</div>{% endif %}
+            <p class="hy-helptext">Xaritada kerakli joyni <strong>bosing</strong> — marker qo‘yiladi. «Manzilni shu nuqtadan to‘ldirish» Google orqali manzil matnini olib keladi (kalit sozlangan bo‘lsa).</p>
+            {% if google_maps_api_key %}
+            <div class="hy-charity-form-map-tools">
+                <button type="button" class="hy-map-tool-btn" id="hy-map-my-location">Mening joyim</button>
+                <button type="button" class="hy-map-tool-btn" id="hy-map-fill-address">Manzilni shu nuqtadan to‘ldirish</button>
+            </div>
+            <div id="hy-charity-form-map" class="hy-charity-form-map" data-api-key="{{ google_maps_api_key }}" role="application" aria-label="Manzil tanlash xaritasi (Google Maps)"></div>
+            {% else %}
+            <p class="hy-charity-map-fallback" role="note">Interaktiv xarita uchun server muhitida <code>GOOGLE_MAPS_API_KEY</code> o‘rnating (Google Cloud: Maps JavaScript API). Hozircha kenglik va uzunlikni qo‘lda kiritishingiz mumkin.</p>
+            {% endif %}
+            {% if form.latitude.errors %}<div class="hy-field-error">{{ form.latitude.errors }}</div>{% endif %}
+            {% if form.longitude.errors %}<div class="hy-field-error">{{ form.longitude.errors }}</div>{% endif %}
+            {{ form.latitude }}{{ form.longitude }}
+        </div>
+
+        <div class="hy-form-group hy-form-row2">
+            <div>
+                <label class="hy-form-label" for="id_contact_phone">Telefon</label>
+                {{ form.contact_phone }}
+                {% if form.contact_phone.errors %}<div class="hy-field-error">{{ form.contact_phone.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="hy-form-label" for="id_sort_order">Tartib</label>
+                {{ form.sort_order }}
+                <p class="hy-helptext">Kichik raqam yuqoriroqda turadi.</p>
+                {% if form.sort_order.errors %}<div class="hy-field-error">{{ form.sort_order.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="hy-form-group hy-form-row2">
+            <div>
+                <label class="hy-form-label" for="id_goal_amount">Maqsad (so‘m)</label>
+                {{ form.goal_amount }}
+                {% if form.goal_amount.help_text %}<p class="hy-helptext">{{ form.goal_amount.help_text }}</p>{% endif %}
+                {% if form.goal_amount.errors %}<div class="hy-field-error">{{ form.goal_amount.errors }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="hy-form-label" for="id_collected_amount">Yig‘ilgan (so‘m)</label>
+                {{ form.collected_amount }}
+                {% if form.collected_amount.help_text %}<p class="hy-helptext">{{ form.collected_amount.help_text }}</p>{% endif %}
+                {% if form.collected_amount.errors %}<div class="hy-field-error">{{ form.collected_amount.errors }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_payment_info">To‘lov / karta (ixtiyoriy)</label>
+            {{ form.payment_info }}
+            {% if form.payment_info.help_text %}<p class="hy-helptext">{{ form.payment_info.help_text }}</p>{% endif %}
+            {% if form.payment_info.errors %}<div class="hy-field-error">{{ form.payment_info.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group hy-charity-form__paylinks">
+            <p class="hy-form-label hy-charity-form__paylinks-title">Tez to‘lov havolalari (ixtiyoriy)</p>
+            <p class="hy-helptext">Click / Payme dan olingan rasmiy havolani qo‘ying — batafsilda katta tugmalar chiqadi.</p>
+            <div class="hy-form-row2">
+                <div>
+                    <label class="hy-form-label" for="id_payment_click_url">Click</label>
+                    {{ form.payment_click_url }}
+                    {% if form.payment_click_url.errors %}<div class="hy-field-error">{{ form.payment_click_url.errors }}</div>{% endif %}
+                </div>
+                <div>
+                    <label class="hy-form-label" for="id_payment_payme_url">Payme</label>
+                    {{ form.payment_payme_url }}
+                    {% if form.payment_payme_url.errors %}<div class="hy-field-error">{{ form.payment_payme_url.errors }}</div>{% endif %}
+                </div>
+            </div>
+            <div class="hy-form-row2">
+                <div>
+                    <label class="hy-form-label" for="id_payment_other_label">Boshqa (nom)</label>
+                    {{ form.payment_other_label }}
+                    {% if form.payment_other_label.errors %}<div class="hy-field-error">{{ form.payment_other_label.errors }}</div>{% endif %}
+                </div>
+                <div>
+                    <label class="hy-form-label" for="id_payment_other_url">Boshqa (havola)</label>
+                    {{ form.payment_other_url }}
+                    {% if form.payment_other_url.errors %}<div class="hy-field-error">{{ form.payment_other_url.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_video">Video</label>
+            {{ form.video }}
+            {% if form.video.errors %}<div class="hy-field-error">{{ form.video.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_poster">Poster (rasm)</label>
+            {{ form.poster }}
+            {% if form.poster.errors %}<div class="hy-field-error">{{ form.poster.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group">
+            <label class="hy-form-label" for="id_verified_note">Tekshiruv eslatmasi (ichki)</label>
+            {{ form.verified_note }}
+            {% if form.verified_note.help_text %}<p class="hy-helptext">{{ form.verified_note.help_text }}</p>{% endif %}
+            {% if form.verified_note.errors %}<div class="hy-field-error">{{ form.verified_note.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-form-group hy-charity-form__publish">
+            <label class="hy-charity-form__check-label">
+                {{ form.is_publicly_verified }}
+                <span>Saytda «Admin tekshirgan» belgisini ko‘rsatish</span>
+            </label>
+            {% if form.is_publicly_verified.errors %}<div class="hy-field-error">{{ form.is_publicly_verified.errors }}</div>{% endif %}
+        </div>
+
+        <div class="hy-charity-form__actions">
+            <button type="submit" class="hy-btn-primary-lg">Saqlash</button>
+            <a href="{% url 'charity_list' %}" class="hy-charity-form__cancel">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{% static 'js/charities-form-map.js' %}"></script>
+{% endblock %}

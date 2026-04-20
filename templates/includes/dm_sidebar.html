@@ -1,0 +1,42 @@
+{% load static %}
+<aside class="hy-dm-sidebar" aria-label="Suhbatlar ro‘yxati">
+    <div class="hy-dm-sidebar__head">
+        <h1 class="hy-dm-sidebar__title">Xabarlar</h1>
+        <form method="get" class="hy-dm-search" action="{% if dm_active_username %}{% url 'dm_thread' username=dm_active_username %}{% else %}{% url 'dm_inbox' %}{% endif %}">
+            <label class="sr-only" for="hy-dm-search-q">Suhbat qidirish</label>
+            <input id="hy-dm-search-q" type="search" name="q" value="{{ dm_search_q|default:'' }}" placeholder="Qidirish" class="hy-dm-search__input" autocomplete="off">
+            <button type="submit" class="hy-dm-search__btn" aria-label="Qidirish">{% include "includes/hybrid_icon.html" with name="search" %}</button>
+        </form>
+    </div>
+    <div class="hy-dm-sidebar__list" role="list">
+        {% for row in dm_sidebar_rows %}
+        <a href="{% url 'dm_thread' username=row.peer.username %}{% if dm_search_q %}?q={{ dm_search_q|urlencode }}{% endif %}"
+           class="hy-dm-thread-row {% if dm_active_username == row.peer.username %}hy-dm-thread-row--active{% endif %}"
+           role="listitem">
+            <span class="hy-dm-thread-row__avatar">
+                {% if row.peer.photo %}
+                <img src="{{ row.peer.photo.url }}" alt="">
+                {% else %}
+                <span class="hy-dm-thread-row__ph">{{ row.peer.username|make_list|first|upper }}</span>
+                {% endif %}
+            </span>
+            <span class="hy-dm-thread-row__body">
+                <span class="hy-dm-thread-row__top">
+                    <span class="hy-dm-thread-row__name truncate">{{ row.peer.username }}</span>
+                    {% if row.thread.updated_at %}
+                    <time class="hy-dm-thread-row__time" datetime="{{ row.thread.updated_at|date:'c' }}">{{ row.thread.updated_at|date:"d.m H:i" }}</time>
+                    {% endif %}
+                </span>
+                <span class="hy-dm-thread-row__preview truncate">
+                    {% if row.thread.last_preview %}{{ row.thread.last_preview }}{% else %}<span class="hy-dm-thread-row__muted">Hozircha xabar yo‘q</span>{% endif %}
+                </span>
+            </span>
+            {% if row.unread %}
+            <span class="hy-dm-thread-row__badge" aria-label="{{ row.unread }} o‘qilmagan">{{ row.unread }}</span>
+            {% endif %}
+        </a>
+        {% empty %}
+        <p class="hy-dm-sidebar__empty">Hozircha suhbat yo‘q. <a href="{% url 'user_search' %}">Qidiruv</a> orqali yaqingizni toping va profildan xabar yozing.</p>
+        {% endfor %}
+    </div>
+</aside>

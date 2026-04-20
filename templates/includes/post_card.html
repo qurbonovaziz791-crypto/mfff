@@ -1,0 +1,105 @@
+{% load blog_extras %}
+{% with un=post.author_username %}
+<article class="hy-post-card" id="hy-post-{{ post.author_id }}-{{ post.id }}">
+    <div class="hy-post-card__inner">
+        <a href="{% url 'profile' username=un %}" class="hy-post-card__avatar-link" aria-label="@{{ un }} profili">
+            {% if post.feed_author_photo_url %}
+            <img class="hy-post-card__avatar" src="{{ post.feed_author_photo_url }}" alt="" width="44" height="44">
+            {% else %}
+            <span class="hy-post-card__avatar-ph">{{ post.feed_author_initial }}</span>
+            {% endif %}
+        </a>
+        <div class="hy-post-card__main">
+            <div class="hy-post-card__top">
+                <div class="hy-post-card__meta">
+                    <a href="{% url 'profile' username=un %}" class="hy-post-card__name">{{ post.feed_author_display|default:un }}</a>
+                    <a href="{% url 'profile' username=un %}" class="hy-post-card__handle">@{{ un }}</a>
+                    <span class="hy-post-card__dot" aria-hidden="true">·</span>
+                    <time class="hy-post-card__time" datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"H:i · d M Y" }}</time>
+                    {% if post.collab_count %}
+                    <span class="hy-pill hy-pill--collab">Hammualliflik</span>
+                    {% endif %}
+                    <span class="hy-mood-emoji" aria-hidden="true">{{ post.mood|mood_emoji }}</span>
+                </div>
+                {% if profile_owner_menu and profile_user and post.author_id == profile_user.id %}
+                <div class="post-menu hy-profile-post-menu">
+                    <button type="button" onclick="togglePostMenu('menu-{{ post.id }}')" class="hy-dots-btn" aria-label="Yana">
+                        {% include "includes/hybrid_icon.html" with name="dots_vertical" %}
+                    </button>
+                    <div id="menu-{{ post.id }}" class="menu-dropdown" role="menu">
+                        <a href="{% url 'compose' %}?edit={{ post.id }}">Tahrirlash</a>
+                        <a href="{% url 'post_detail' username=profile_user.username post_id=post.id %}">Havola</a>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_status">
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                            <button type="submit">{% if post.is_public %}Yopiq qilish{% else %}Ochiq qilish{% endif %}</button>
+                        </form>
+                        <form method="post" onsubmit="return confirm('O\'chirilsinmi?')">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                            <button type="submit">O‘chirish</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <h2 class="hy-post-card__title">{{ post.title }}</h2>
+            <p class="hy-post-card__body hy-text-body">{{ post.body }}</p>
+
+            {% if post.hashtag or visibility_labels or post.is_draft %}
+            <div class="hy-post-card__tags">
+                {% if post.hashtag %}
+                {% if cal_year and cal_month %}
+                <a class="hy-tag" href="{% url 'profile' username=un %}?tag={{ post.hashtag|cut:'#' }}&cal_year={{ cal_year }}&cal_month={{ cal_month }}">{{ post.hashtag }}</a>
+                {% else %}
+                <a class="hy-tag" href="{% url 'profile' username=un %}?tag={{ post.hashtag|cut:'#' }}">{{ post.hashtag }}</a>
+                {% endif %}
+                {% endif %}
+                {% if post.is_draft %}<span class="hy-pill hy-pill--draft">qoralama</span>{% endif %}
+                {% if visibility_labels %}
+                <span class="hy-pill hy-pill--vis">{{ visibility_labels|get_item:post.visibility }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if show_social_actions|default:True %}
+            <div class="hy-post-actions" role="toolbar" aria-label="Post harakatlari">
+                <a href="{% url 'post_detail' username=un post_id=post.id %}" class="hy-act-reply" aria-label="Izohlar">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+                <button type="button"
+                        class="hy-act-repost"
+                        aria-label="Qayta ulashish"
+                        hx-post="{% url 'feed_hx_interaction' %}"
+                        hx-vals='{"kind": "repost", "post_id": "{{ post.id }}", "post_author_id": "{{ post.author_id }}"}'
+                        hx-swap="none"
+                        onclick="this.classList.add('is-done')">
+                    {% include "includes/hybrid_icon.html" with name="repost" %}
+                </button>
+                <button type="button" class="hy-act-share" aria-label="Ulashish" data-hy-share-url="{{ request.scheme }}://{{ request.get_host }}{% url 'post_detail' username=un post_id=post.id %}" onclick="hyNativeShare(this.getAttribute('data-hy-share-url'))">{% include "includes/hybrid_icon.html" with name="share" %}</button>
+            </div>
+            {% endif %}
+
+            {% if show_mark_seen %}
+            <div id="seen-wrap-{{ post.author_id }}-{{ post.id }}" class="hy-seen-wrap">
+                {% if post.feed_seen_by_viewer %}
+                <span class="hy-pill-silent">Ko‘rilgan</span>
+                {% else %}
+                <form method="post"
+                      action="{% url 'mark_feed_seen' %}"
+                      hx-post="{% url 'mark_feed_seen' %}"
+                      hx-target="#seen-wrap-{{ post.author_id }}-{{ post.id }}"
+                      hx-swap="outerHTML">
+                    {% csrf_token %}
+                    <input type="hidden" name="post_author_id" value="{{ post.author_id }}">
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <input type="hidden" name="next" value="{% url 'home_feed' %}">
+                    <button type="submit" class="hy-btn-ghost">Ko‘rdim</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</article>
+{% endwith %}

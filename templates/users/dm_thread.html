@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}@{{ dm_other.username }} — xabarlar{% endblock %}
+
+{% block content %}
+<div class="hy-dm-page hy-dm-page--thread">
+<div class="hy-dm">
+    {% include "includes/dm_sidebar.html" %}
+    <section class="hy-dm-main hy-dm-main--thread" aria-label="Suhbat">
+        <header class="hy-dm-thread-head">
+            <a href="{% url 'dm_inbox' %}{% if dm_search_q %}?q={{ dm_search_q|urlencode }}{% endif %}" class="hy-dm-thread-head__back" aria-label="Orqaga">←</a>
+            <a href="{% url 'profile' username=dm_other.username %}" class="hy-dm-thread-head__who">
+                <span class="hy-dm-thread-head__avatar">
+                    {% if dm_other.photo %}
+                    <img src="{{ dm_other.photo.url }}" alt="">
+                    {% else %}
+                    <span class="hy-dm-thread-head__ph">{{ dm_other.username|make_list|first|upper }}</span>
+                    {% endif %}
+                </span>
+                <span class="hy-dm-thread-head__name truncate">{{ dm_other.username }}</span>
+            </a>
+        </header>
+
+        <div class="hy-dm-bubbles" id="hy-dm-bubbles">
+            {% for m in dm_messages %}
+            {% include "includes/dm_message_bubble.html" with dm_peer=dm_other %}
+            {% empty %}
+            <p class="hy-dm-bubbles__empty">Hozircha xabar yo‘q. Birinchi xabarni yozing.</p>
+            {% endfor %}
+        </div>
+
+        <form method="post" class="hy-dm-compose" action="" enctype="multipart/form-data" id="hy-dm-compose-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send">
+            <input type="hidden" name="reply_to_id" value="" id="hy-dm-reply-to" autocomplete="off">
+            <input type="file" name="voice_attachment" id="hy-dm-voice-file" class="hy-dm-compose__hidden-file" tabindex="-1" aria-hidden="true">
+            <input type="hidden" name="voice" value="0" id="hy-dm-voice-flag">
+
+            <div id="hy-dm-reply-bar" class="hy-dm-reply-bar" hidden>
+                <div class="hy-dm-reply-bar__inner">
+                    <span class="hy-dm-reply-bar__lbl">Javob:</span>
+                    <span class="hy-dm-reply-bar__who" id="hy-dm-reply-bar-who"></span>
+                    <span class="hy-dm-reply-bar__snip" id="hy-dm-reply-bar-snip"></span>
+                </div>
+                <button type="button" class="hy-dm-reply-bar__x" id="hy-dm-reply-cancel" aria-label="Javobni bekor qilish">×</button>
+            </div>
+
+            <div id="hy-dm-emoji-panel" class="hy-dm-emoji-panel" hidden>
+                <div class="hy-dm-emoji-grid" id="hy-dm-emoji-grid"></div>
+            </div>
+
+            <div class="hy-dm-compose__row">
+                <button type="button" class="hy-dm-compose__tool" id="hy-dm-emoji-toggle" aria-label="Emoji" title="Emoji">
+                    {% include "includes/hybrid_icon.html" with name="face_smile" %}
+                </button>
+                <label class="hy-dm-compose__attach" aria-label="Fayl yuborish">
+                    <input type="file" name="attachment" id="hy-dm-file" class="hy-dm-compose__file" accept="image/jpeg,image/png,image/gif,image/webp,.pdf,.txt,.zip">
+                    <span class="hy-dm-compose__attach-ico" aria-hidden="true">{% include "includes/hybrid_icon.html" with name="plus" %}</span>
+                </label>
+                <button type="button" class="hy-dm-compose__tool" id="hy-dm-voice-btn" aria-label="Ovozli xabar" title="Ovoz: yozishni tugatish uchun yana bosing">
+                    {% include "includes/hybrid_icon.html" with name="mic" %}
+                </button>
+                <label class="sr-only" for="hy-dm-body">Xabar matni</label>
+                <textarea id="hy-dm-body" name="body" rows="1" class="hy-dm-compose__input" placeholder="Xabar yozing…" maxlength="4000"></textarea>
+                <button type="submit" class="hy-dm-compose__send" aria-label="Yuborish">{% include "includes/hybrid_icon.html" with name="paper" %}</button>
+            </div>
+        </form>
+        <p class="hy-dm-compose__hint" id="hy-dm-file-hint" hidden></p>
+    </section>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.HY_DM_POLL_URL = "{% url 'dm_thread_poll' username=dm_other.username %}";
+window.HY_DM_LAST_ID = {{ dm_last_message_id|default:0 }};
+</script>
+<script src="{% static 'js/dm-thread.js' %}" defer></script>
+{% endblock %}

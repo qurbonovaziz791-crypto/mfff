@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %} | Statistika{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{% url 'profile' username=user.username %}" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
+        <h1 class="hy-form-header__title">Statistika</h1>
+        <a href="{% url 'archive' %}" aria-label="Arxiv">{% include "includes/hybrid_icon.html" with name="pin" %}</a>
+    </div>
+</div>
+
+<div class="hy-stats">
+    <p class="hy-stats__intro">O‘zingizning o‘tgan davrlar bo‘yicha xotiralaringiz va tizimdagi <strong>ochiq</strong> xotiralardan umumiy kayfiyat taqsimoti.</p>
+
+    <div class="hy-stats-hero" role="group" aria-label="Tezkor ko‘rsatkichlar">
+        <div class="hy-stats-pill hy-stats-pill--streak">
+            <span class="hy-stats-pill__k">Ketma-ketlik</span>
+            <span class="hy-stats-pill__v">{{ streak_days }} <span class="hy-stats-pill__u">kun</span></span>
+            <span class="hy-stats-pill__hint">Har kuni kamida bitta xotira (bugundan orqaga)</span>
+        </div>
+        <div class="hy-stats-pill hy-stats-pill--ytd">
+            <span class="hy-stats-pill__k">Shu yil</span>
+            <span class="hy-stats-pill__v">{{ ytd_total }} <span class="hy-stats-pill__u">xotira</span></span>
+            <span class="hy-stats-pill__hint">1 yanvardan bugungacha</span>
+        </div>
+    </div>
+
+    <p class="hy-section-title">Sizning xotiralaringiz</p>
+
+    {% for block in me_blocks %}
+    <section class="hy-stats-card">
+        <div class="hy-stats-card__head">
+            <h2 class="hy-stats-card__title">{{ block.period.label }}</h2>
+            <span class="hy-stats-card__range">{{ block.period.range }}</span>
+        </div>
+        {% if block.data.total %}
+        <p class="hy-stats-card__total"><strong>{{ block.data.total }}</strong> ta xotira</p>
+        <ul class="hy-stats-bars" role="list">
+            {% for row in block.data.bars %}
+            <li class="hy-stats-bar">
+                <div class="hy-stats-bar__top">
+                    <span class="hy-stats-bar__label">{{ row.label }}</span>
+                    <span class="hy-stats-bar__meta">{{ row.count }} · {{ row.pct }}%</span>
+                </div>
+                <div class="hy-stats-bar__track" aria-hidden="true">
+                    <div class="hy-stats-bar__fill" style="width: {{ row.bar }}%"></div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="hy-stats-empty">Bu davrda xotira yo‘q.</p>
+        {% endif %}
+    </section>
+    {% endfor %}
+
+    <p class="hy-section-title">Hashtag TOP-5 (shu yil)</p>
+    <section class="hy-stats-card hy-stats-card--tags">
+        {% if hashtag_top_ytd %}
+        <ol class="hy-stats-tags" role="list">
+            {% for row in hashtag_top_ytd %}
+            <li class="hy-stats-tags__row">
+                <span class="hy-stats-tags__rank">{{ forloop.counter }}</span>
+                <a class="hy-stats-tags__link" href="{% url 'hashtag_explore' tag=row.slug %}">{{ row.display }}</a>
+                <span class="hy-stats-tags__count">{{ row.count }}×</span>
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="hy-stats-empty">Shu yilda hashtag bilan xotira yo‘q.</p>
+        {% endif %}
+    </section>
+
+    <p class="hy-section-title">Tizim (hammaga ochiq xotiralar)</p>
+    <p class="hy-stats__hint">Maxfiylik: faqat <strong>ommaviy</strong> nashrlar hisobga olinadi.</p>
+
+    {% for block in sys_blocks %}
+    <section class="hy-stats-card hy-stats-card--system">
+        <div class="hy-stats-card__head">
+            <h2 class="hy-stats-card__title">{{ block.period.label }}</h2>
+        </div>
+        {% if block.data.total %}
+        <p class="hy-stats-card__total"><strong>{{ block.data.total }}</strong> ta ochiq xotira</p>
+        <ul class="hy-stats-bars" role="list">
+            {% for row in block.data.bars %}
+            <li class="hy-stats-bar">
+                <div class="hy-stats-bar__top">
+                    <span class="hy-stats-bar__label">{{ row.label }}</span>
+                    <span class="hy-stats-bar__meta">{{ row.count }} · {{ row.pct }}%</span>
+                </div>
+                <div class="hy-stats-bar__track" aria-hidden="true">
+                    <div class="hy-stats-bar__fill hy-stats-bar__fill--sys" style="width: {{ row.bar }}%"></div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="hy-stats-empty">Hozircha ma’lumot yo‘q.</p>
+        {% endif %}
+    </section>
+    {% endfor %}
+</div>
+{% endblock %}

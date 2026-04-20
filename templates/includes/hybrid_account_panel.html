@@ -1,0 +1,15 @@
+{# Hisob: Tahrirlash, Sozlamalar, Chiqish — ikonalar bilan #}
+<div class="hy-account-panel" role="menu">
+    <a href="{{ url_profile_edit }}" class="hy-account-panel__row" role="menuitem">
+        <span class="hy-account-panel__ico" aria-hidden="true">{% include "includes/hybrid_icon.html" with name="pencil" %}</span>
+        <span>Profilni tahrirlash</span>
+    </a>
+    <a href="{{ url_profile_settings }}" class="hy-account-panel__row" role="menuitem">
+        <span class="hy-account-panel__ico" aria-hidden="true">{% include "includes/hybrid_icon.html" with name="cog" %}</span>
+        <span>Sozlamalar</span>
+    </a>
+    <a href="{% url 'logout' %}" class="hy-account-panel__row hy-account-panel__row--danger" role="menuitem">
+        <span class="hy-account-panel__ico" aria-hidden="true">{% include "includes/hybrid_icon.html" with name="logout" %}</span>
+        <span>Chiqish</span>
+    </a>
+</div>

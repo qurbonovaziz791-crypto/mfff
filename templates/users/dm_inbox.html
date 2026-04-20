@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Xabarlar{% endblock %}
+
+{% block content %}
+<div class="hy-dm-page hy-dm-page--inbox">
+<div class="hy-dm">
+    {% include "includes/dm_sidebar.html" %}
+    <section class="hy-dm-main hy-dm-main--empty" aria-label="Suhbat tanlang">
+        <div class="hy-dm-empty">
+            <p class="hy-dm-empty__title">Suhbatni tanlang</p>
+            <p class="hy-dm-empty__text">Ro‘yxatdan foydalanuvchini tanlang yoki profildan <strong>Yaqin</strong> bo‘lgan odamga xabar yozing.</p>
+        </div>
+    </section>
+</div>
+</div>
+{% endblock %}

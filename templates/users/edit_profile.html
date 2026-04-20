@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} | Profilni tahrirlash{% endblock %}
+
+{% block content %}
+<div class="hy-form-header">
+    <div class="hy-form-header__inner">
+        <a href="{% url 'profile' username=request.user.username %}" aria-label="Yopish"><i class="bi bi-x-lg text-xl"></i></a>
+        <h1 class="hy-form-header__title">Profilni tahrirlash</h1>
+        <span style="width:28px"></span>
+    </div>
+</div>
+
+<div class="hy-form-page">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="flex flex-col items-center mb-8">
+            <div class="photo-edit-circle mb-4" style="width:104px;height:104px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 0 0 2px var(--hy-accent);outline-offset:2px">
+                {% if request.user.photo %}
+                    <img src="{{ request.user.photo.url }}" class="w-full h-full object-cover" id="photoPreview" alt="">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-white text-3xl font-bold" id="photoPreview" style="background:linear-gradient(135deg,#60a5fa,var(--hy-accent))">
+                        {{ request.user.username|make_list|first|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <label class="cursor-pointer">
+                <span class="text-sm font-semibold" style="color:var(--hy-accent)">Suratni yangilash</span>
+                <input type="file" name="photo" id="photoInput" class="hidden" accept="image/*">
+            </label>
+        </div>
+
+        <div class="hy-form-card">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="hy-form-group">
+                    <label class="hy-form-label" for="id_first">Ism</label>
+                    <input id="id_first" type="text" name="first_name" value="{{ request.user.first_name }}" class="hy-form-input" placeholder="Ismingiz">
+                </div>
+                <div class="hy-form-group">
+                    <label class="hy-form-label" for="id_last">Familiya</label>
+                    <input id="id_last" type="text" name="last_name" value="{{ request.user.last_name }}" class="hy-form-input" placeholder="Familiyangiz">
+                </div>
+            </div>
+            <div class="hy-form-group mb-0">
+                <label class="hy-form-label" for="id_bio">Bio</label>
+                <textarea id="id_bio" name="bio" rows="3" class="hy-form-input resize-none" placeholder="O‘zingiz haqingizda qisqacha..." maxlength="500">{{ request.user.bio }}</textarea>
+            </div>
+        </div>
+
+        <div class="hy-form-card">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="hy-form-group">
+                    <label class="hy-form-label" for="id_gender">Jins</label>
+                    <select id="id_gender" name="gender" class="hy-form-input" style="padding-left:14px">
+                        <option value="">Tanlang</option>
+                        <option value="male" {% if request.user.gender == 'male' %}selected{% endif %}>Erkak</option>
+                        <option value="female" {% if request.user.gender == 'female' %}selected{% endif %}>Ayol</option>
+                    </select>
+                </div>
+                <div class="hy-form-group">
+                    <label class="hy-form-label" for="id_dob">Tug‘ilgan sana</label>
+                    <input id="id_dob" type="date" name="dob" value="{{ request.user.dob|date:'Y-m-d' }}" class="hy-form-input" style="padding-left:14px">
+                </div>
+            </div>
+            <div class="hy-form-group mb-0">
+                <label class="hy-form-label" for="id_region">Yashash hududi</label>
+                <select id="id_region" name="region" class="hy-form-input" style="padding-left:14px">
+                    <option value="">Hududni tanlang</option>
+                    {% for reg_code, reg_name in regions %}
+                        <option value="{{ reg_code }}" {% if request.user.region == reg_code %}selected{% endif %}>{{ reg_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="hy-form-card">
+            <label class="hy-form-label mb-3"><i class="bi bi-link-45deg"></i> Ijtimoiy havolalar</label>
+            <div class="space-y-3">
+                {% with request.user.links as links %}
+                <input type="url" name="link1" value="{{ links.0|default:'' }}" class="hy-form-input" placeholder="Havola 1">
+                <input type="url" name="link2" value="{{ links.1|default:'' }}" class="hy-form-input" placeholder="Havola 2">
+                <input type="url" name="link3" value="{{ links.2|default:'' }}" class="hy-form-input" placeholder="Havola 3">
+                {% endwith %}
+            </div>
+        </div>
+
+        <button type="submit" class="hy-btn-primary-lg">O‘zgarishlarni saqlash</button>
+        <a href="{% url 'profile' username=request.user.username %}" class="block text-center py-3 font-semibold text-sm" style="color:var(--hy-text-muted)">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('photoInput').addEventListener('change', function(event) {
+        if(event.target.files && event.target.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var preview = document.getElementById('photoPreview');
+                if (preview.tagName === 'IMG') {
+                    preview.src = e.target.result;
+                } else {
+                    var img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-full h-full object-cover';
+                    img.id = 'photoPreview';
+                    img.alt = '';
+                    preview.parentNode.replaceChild(img, preview);
+                }
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    });
+</script>
+{% endblock %}

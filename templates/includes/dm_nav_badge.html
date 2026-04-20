@@ -1,0 +1,3 @@
+{% if user.is_authenticated and dm_unread_total > 0 %}
+<span class="hy-dm-nav-badge" title="O‘qilmagan xabarlar">{% if dm_unread_total > 99 %}99+{% else %}{{ dm_unread_total }}{% endif %}</span>
+{% endif %}

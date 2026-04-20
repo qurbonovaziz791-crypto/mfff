@@ -1,0 +1,41 @@
+# MYFEEL loyihasi: Autentifikatsiya va Profil Moduli Tayyorlandi
+
+Siz kutgan barcha talablarga asoslanib, loyihanining fundamental infratuzilmasini "Senior" darajada, optimal usulda yo'lga qo'ydik. 
+
+## 1. Dastlabki Dasturiy Muhit (Backend)
+
+- **Loyiha yaratildi**: `config` loyihasi hamda `users` ilovasiga start berildi.
+- **Model va Baza**: Custom User modeli (`users.User`) faqatgina Telegram ma'lumotlari (`telegram_id`, `phone`) hamda barcha ijtimoiy tarmoq fieldlari (`gender`, `dob`, `region`, `links`, `bio`, `photo`) bilan ishlaydigan darajaga keltirildi. Ro'yxatdan o'tganda **Avto lk_uuid** shifrlash generatori muvaffaqiyatli bog'landi.
+- **API (FastAPI o'rniga Django Ninja)**: Siz aytgandek, optimal bo'lishi uchun `users/api.py` yaratildi. Endi siz yaratadigan Telegram Bot to'ppa-to'g'ri `http://127.0.0.1:8000/api/bot/register/` manziliga JSON jo'natib akkaunt yarata oladi va `https://my-feel.uz/auth/<lk_uuid>/` (Magic Link) qaytarib oladi.
+
+## 2. Foydalanuvchi Interfeysi (UI / UX)
+
+Loyihada **Tailwind CSS**, tayyor **Bootstrap** utilitalari va maxsus CSS ishlatildi:
+- **Login Sahifa (`/login/`)**:
+  Juda minimalistik. Faqat Username va Parol so'raladi. Parolda 6 ta harf kiritilmagunicha "Kirish" tugmasi passiv (disabled) bo'lib turadi (JS yordamida client-side tekshiruv usuli bilan!). Ro'yhatdan o'tish uchun `t.me/my_feel_uz_bot` manzili aniq ko'rsatilgan. Logo to'g'ri joylashtirildi. Barcha ekran turlari (Mobile, Tablet, Desktop) uchun universal CSS (`static/css/login.css` da) yozildi.
+- **Profil Sahifa (`/profile/<username>/`)**:
+  1-ga-1 Instagram profiliga moslashtirilgan. Katta ekranlar (Planshet/PC) uchun avatarlar yonma-yon kelsa, Mobil ekranlar uchun (Smartphones) vertikal elementlarga bo'linadigan Responsive TailwindGrid UI kiritildi (`static/css/profile.css`). Maxsus HTMX poydevori (base.html ichida) yo'lga qo'yildi.
+- **Edit Profile (`/profile/edit/`)**:
+  Foydalanuvchi o'zining rasmi, ismi, va tug'ilgan yili yoki viloyati (Toshkent, Farg'ona va h.k.) larni juda zamonaviy HTML form orqali moslashtirishi mumkin. Orqa fondan tortib, button borderlargacha Instagram'dagidek optimal bo'lishiga harakat qilindi. 
+
+## 3. Loyihani Ishga Tushirish
+
+Serverni tekshirish uchun quyidagi buyruqni Termirnalda (Papkada) ishlating:
+
+```bash
+# Vertual muhitni yoqish (agar kerak bo'lsa)
+.\venv\Scripts\Activate.ps1
+
+# Serverni yoqish
+python manage.py runserver
+```
+
+> [!TIP]
+> Siz uchun test foydalanuvchisi yaratildi! 
+> Browserdan kirish orqali test qilish: `http://127.0.0.1:8000/login/` 
+> - **Username**: `admin`
+> - **Password**: `admin`
+
+## 4. Yakuniy Xulosa
+
+Loyihaning arxitekturasi juda yengil vaznda ko'tarildi. Telegram botingiz bilan integratsiya qilinadigan Backend ham hozirdanoq API larga javob bera oladi. Keyingi bosqichlarda "Post" qo'shish, Reels joylash yoki boshqa yangi qismlar yaratish mumkin. Qanday savollar bor, jigarim?
