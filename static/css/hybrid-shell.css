@@ -43,6 +43,30 @@ body.hy-body {
   text-rendering: optimizeLegibility;
 }
 
+/* Verified badge (global; used in feed/search/profile) */
+.mf-verify-ico{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  color: #0095f6;
+  vertical-align: text-bottom;
+  transform: translateY(1px);
+  filter: drop-shadow(0 2px 6px rgba(0, 149, 246, 0.25));
+}
+.mf-verify-ico svg{
+  width: 18px;
+  height: 18px;
+  display:block;
+}
+.mf-verify-ico__img{
+  width: 18px;
+  height: 18px;
+  display:block;
+}
+
 /* Accessibility + consistency */
 :where(.hy-body) :where(a, button, input, textarea, select, summary):focus-visible {
   outline: 3px solid color-mix(in srgb, var(--hy-accent) 55%, white);
@@ -176,94 +200,6 @@ body.hy-body {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-/* Speed indicator (always visible) */
-.hy-speed {
-  --hy-speed-bg: rgba(15, 20, 25, 0.06);
-  --hy-speed-ring: rgba(0, 122, 255, 0.20);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 10px 0 8px;
-  border-radius: 999px;
-  background: var(--hy-speed-bg);
-  box-shadow:
-    0 0 0 1px rgba(15, 20, 25, 0.06) inset,
-    0 0 0 6px transparent;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--hy-text);
-  user-select: none;
-  white-space: nowrap;
-}
-
-.hy-speed--fixed {
-  position: fixed;
-  right: 14px;
-  bottom: calc(var(--hy-bottom-h, 0px) + env(safe-area-inset-bottom, 0px) + 14px);
-  z-index: 9999;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.hy-speed--fixed:hover {
-  box-shadow:
-    0 0 0 1px rgba(15, 20, 25, 0.06) inset,
-    0 10px 24px rgba(15, 23, 42, 0.12);
-}
-
-.hy-speed__pulse {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--hy-accent);
-  box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.0);
-  transform: translateZ(0);
-}
-
-.hy-speed.is-hot .hy-speed__pulse {
-  background: var(--hy-repost-on);
-}
-
-.hy-speed.is-slow .hy-speed__pulse {
-  background: #f4212e;
-}
-
-.hy-speed.is-ping .hy-speed__pulse {
-  animation: hy-speed-ping 600ms ease-out;
-}
-
-@keyframes hy-speed-ping {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.45);
-    transform: scale(1);
-  }
-  100% {
-    box-shadow: 0 0 0 14px rgba(0, 122, 255, 0.0);
-    transform: scale(1.05);
-  }
-}
-
-.hy-speed__label {
-  opacity: 0.7;
-}
-
-.hy-speed__value {
-  font-variant-numeric: tabular-nums;
-}
-
-.hy-speed__unit {
-  opacity: 0.6;
-}
-
-@media (max-width: 420px) {
-  .hy-speed__label,
-  .hy-speed__unit {
-    display: none;
-  }
 }
 
 .hy-icon-btn {
@@ -745,6 +681,9 @@ body.hy-body {
   gap: 2px;
 }
 .hy-reco__name{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 900;
   line-height: 1.1;
   white-space: nowrap;
@@ -794,6 +733,18 @@ body.hy-body {
   border-color: rgba(0, 122, 255, 0.28);
   background: rgba(0, 122, 255, 0.12);
   color: #0057d8;
+}
+.hy-reco__btn--text{
+  height: auto;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  color: #0095f6;
+  font-weight: 950;
+  box-shadow: none;
+}
+.hy-reco__btn--text:hover{
+  background: rgba(0, 149, 246, 0.08);
 }
 .hy-reco__pill{
   display:inline-flex;
@@ -5525,6 +5476,17 @@ details[open] > summary .hy-ico-open {
   font-size: 1.35rem;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.hy-dm-thread-head__back svg{
+  display:block;
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .hy-dm-thread-head__back:hover {

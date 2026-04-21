@@ -510,11 +510,11 @@ def user_search_view(request):
                 | Q(first_name__icontains=q)
                 | Q(last_name__icontains=q)
             )
-            .only("id", "username", "first_name", "last_name", "photo", "region", "allow_yaqin_requests")
+            .only("id", "username", "first_name", "last_name", "photo", "region", "allow_yaqin_requests", "is_verified")
             .order_by("username")[:220]
         )
         scored = [(u, _score(u, q)) for u in pool]
-        scored.sort(key=lambda t: (t[1], t[0].username), reverse=True)
+        scored.sort(key=lambda t: (bool(t[0].is_verified), t[1], t[0].username), reverse=True)
         users = [u for (u, sc) in scored if sc > 0.15][:30]
     else:
         # Suggested: same region + mutual yaqinlar.
@@ -522,7 +522,7 @@ def user_search_view(request):
         if viewer_region:
             cand_qs = cand_qs.filter(region=viewer_region)
         pool = list(
-            cand_qs.only("id", "username", "first_name", "last_name", "photo", "region", "allow_yaqin_requests")
+            cand_qs.only("id", "username", "first_name", "last_name", "photo", "region", "allow_yaqin_requests", "is_verified")
             .order_by("username")[:140]
         )
         def mutual(u: User) -> int:
@@ -530,12 +530,12 @@ def user_search_view(request):
             u_peers = set(_yaqin_peer_ids(u))
             return len(viewer_peers.intersection(u_peers))
         scored = [(u, mutual(u)) for u in pool]
-        scored.sort(key=lambda t: (t[1], t[0].username), reverse=True)
+        scored.sort(key=lambda t: (bool(t[0].is_verified), t[1], t[0].username), reverse=True)
         users = [u for (u, mc) in scored if mc > 0][:20]
         if len(users) < 20:
             # fallback: active users (no region filter) to fill list
             filler = list(
-                base.only("id", "username", "first_name", "last_name", "photo", "region", "allow_yaqin_requests")
+                base.only("id", "username", "first_name", "last_name", "photo", "region", "allow_yaqin_requests", "is_verified")
                 .order_by("username")[:60]
             )
             have = {u.pk for u in users}
@@ -1707,7 +1707,7 @@ def home_feed_view(request):
                 "allow_requests": bool(getattr(u, "allow_yaqin_requests", True)),
             }
         )
-    reco_rows.sort(key=lambda r: (r["mutual"], r["user"].username), reverse=True)
+    reco_rows.sort(key=lambda r: (bool(getattr(r["user"], "is_verified", False)), r["mutual"], r["user"].username), reverse=True)
     reco_rows = reco_rows[:20]
 
     return render(

@@ -44,7 +44,12 @@
                             <span class="hy-reco__ph">{{ r.user.username|make_list|first|upper }}</span>
                             {% endif %}
                             <span class="hy-reco__meta">
-                                <span class="hy-reco__name">{{ r.display }}</span>
+                                <span class="hy-reco__name">
+                                  {{ r.display }}
+                                  {% if r.user.is_verified %}
+                                  {% include "includes/verified_badge.html" %}
+                                  {% endif %}
+                                </span>
                                 <span class="hy-reco__handle">@{{ r.user.username }}</span>
                                 {% if r.mutual and r.mutual > 0 %}
                                 <span class="hy-reco__mutual">{{ r.mutual }} umumiy</span>
@@ -76,7 +81,7 @@
                                     <input type="hidden" name="action" value="yaqin_request">
                                     <input type="hidden" name="username" value="{{ r.user.username }}">
                                     <input type="hidden" name="next" value="{{ request.path }}">
-                                    <button class="hy-reco__btn hy-reco__btn--primary" type="submit">Yaqinlashish</button>
+                                    <button class="hy-reco__btn hy-reco__btn--text" type="submit">Ulanish</button>
                                 </form>
                                 {% else %}
                                 <span class="hy-reco__pill">Yopiq</span>

@@ -3,6 +3,10 @@
 
 {% block title %} | @{{ profile_user.username }} — yaqinlar{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="hy-form-header">
     <div class="hy-form-header__inner">
@@ -33,7 +37,12 @@
                     <span class="hy-yaqin-list__ph">{{ u.username|make_list|first|upper }}</span>
                     {% endif %}
                     <span class="hy-yaqin-list__meta">
-                        <span class="hy-yaqin-list__name">{{ u.get_full_name|default:u.username }}</span>
+                        <span class="hy-yaqin-list__name">
+                          {{ u.get_full_name|default:u.username }}
+                          {% if u.is_verified %}
+                          {% include "includes/verified_badge.html" %}
+                          {% endif %}
+                        </span>
                         <span class="hy-yaqin-list__handle">@{{ u.username }}</span>
                     </span>
                     <span class="hy-yaqin-list__chev" aria-hidden="true">›</span>

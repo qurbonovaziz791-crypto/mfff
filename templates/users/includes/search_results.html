@@ -8,7 +8,12 @@
       <span class="hy-yaqin-list__ph">{{ row.user.username|make_list|first|upper }}</span>
       {% endif %}
       <span class="hy-yaqin-list__meta">
-        <span class="hy-yaqin-list__name">{{ row.display }}</span>
+        <span class="hy-yaqin-list__name">
+          {{ row.display }}
+          {% if row.user.is_verified %}
+          {% include "includes/verified_badge.html" %}
+          {% endif %}
+        </span>
         <span class="hy-yaqin-list__handle">@{{ row.user.username }}</span>
         {% if mode == "suggested" and row.mutual and row.mutual > 0 %}
         <span class="hy-yaqin-list__sub">{{ row.mutual }} umumiy</span>
@@ -49,7 +54,7 @@
           <input type="hidden" name="action" value="yaqin_request">
           <input type="hidden" name="username" value="{{ row.user.username }}">
           <input type="hidden" name="q" value="{{ q|default:'' }}">
-          <button class="hy-user-search__btn" type="submit">Yaqinlashish</button>
+          <button class="hy-user-search__btn hy-user-search__btn--text" type="submit">Ulanish</button>
         </form>
         {% else %}
         <span class="hy-user-search__pill">Yopiq</span>

@@ -6,7 +6,7 @@
 {% block content %}
 <div class="hy-form-header">
     <div class="hy-form-header__inner">
-        <a href="{% url 'profile' username=request.user.username %}" aria-label="Orqaga"><i class="bi bi-chevron-left text-xl"></i></a>
+        <a href="{% url 'profile' username=request.user.username %}" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
         <h1 class="hy-form-header__title">Xavfsizlik</h1>
         <span style="width:28px"></span>
     </div>

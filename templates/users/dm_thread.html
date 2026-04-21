@@ -9,7 +9,7 @@
     {% include "includes/dm_sidebar.html" %}
     <section class="hy-dm-main hy-dm-main--thread" aria-label="Suhbat">
         <header class="hy-dm-thread-head">
-            <a href="{% url 'dm_inbox' %}{% if dm_search_q %}?q={{ dm_search_q|urlencode }}{% endif %}" class="hy-dm-thread-head__back" aria-label="Orqaga">←</a>
+            <a href="{% url 'dm_inbox' %}{% if dm_search_q %}?q={{ dm_search_q|urlencode }}{% endif %}" class="hy-dm-thread-head__back" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
             <a href="{% url 'profile' username=dm_other.username %}" class="hy-dm-thread-head__who">
                 <span class="hy-dm-thread-head__avatar">
                     {% if dm_other.photo %}
@@ -18,7 +18,12 @@
                     <span class="hy-dm-thread-head__ph">{{ dm_other.username|make_list|first|upper }}</span>
                     {% endif %}
                 </span>
-                <span class="hy-dm-thread-head__name truncate">{{ dm_other.username }}</span>
+                <span class="hy-dm-thread-head__name truncate">
+                  {{ dm_other.username }}
+                  {% if dm_other.is_verified %}
+                  {% include "includes/verified_badge.html" %}
+                  {% endif %}
+                </span>
             </a>
         </header>
 
@@ -36,15 +41,6 @@
             <input type="hidden" name="reply_to_id" value="" id="hy-dm-reply-to" autocomplete="off">
             <input type="file" name="voice_attachment" id="hy-dm-voice-file" class="hy-dm-compose__hidden-file" tabindex="-1" aria-hidden="true">
             <input type="hidden" name="voice" value="0" id="hy-dm-voice-flag">
-
-            <div id="hy-dm-reply-bar" class="hy-dm-reply-bar" hidden>
-                <div class="hy-dm-reply-bar__inner">
-                    <span class="hy-dm-reply-bar__lbl">Javob:</span>
-                    <span class="hy-dm-reply-bar__who" id="hy-dm-reply-bar-who"></span>
-                    <span class="hy-dm-reply-bar__snip" id="hy-dm-reply-bar-snip"></span>
-                </div>
-                <button type="button" class="hy-dm-reply-bar__x" id="hy-dm-reply-cancel" aria-label="Javobni bekor qilish">×</button>
-            </div>
 
             <div id="hy-dm-emoji-panel" class="hy-dm-emoji-panel" hidden>
                 <div class="hy-dm-emoji-grid" id="hy-dm-emoji-grid"></div>
@@ -70,6 +66,17 @@
     </section>
 </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* DM thread: minimal UI */
+  .hy-bottom-nav { display: none !important; }
+  /* remove global bottom-nav padding */
+  .hy-content { padding-bottom: 16px !important; }
+  /* reply UI disabled in chat detail */
+  .hy-dm-msg__reply-btn, #hy-dm-reply-to { display: none !important; }
+</style>
 {% endblock %}
 
 {% block extra_js %}

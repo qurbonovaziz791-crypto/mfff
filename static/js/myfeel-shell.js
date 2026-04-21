@@ -7,9 +7,6 @@
   var root = document.documentElement;
   var progressEl = document.getElementById("mf-htmx-progress");
   var progressResetTimer;
-  var speedEl = document.getElementById("hy-speed");
-  var speedValueEl = speedEl ? speedEl.querySelector("[data-hy-speed-value]") : null;
-  var htmxT0 = 0;
 
   function setProgress(scale, opacity) {
     if (!progressEl) return;
@@ -17,43 +14,10 @@
     if (typeof opacity === "number") progressEl.style.opacity = String(opacity);
   }
 
-  function setSpeed(ms) {
-    if (!speedValueEl) return;
-    var v = Math.max(0, Math.round(ms));
-    speedValueEl.textContent = String(v);
-
-    if (!speedEl) return;
-    speedEl.classList.remove("is-hot", "is-slow");
-    if (v <= 120) speedEl.classList.add("is-hot");
-    if (v >= 450) speedEl.classList.add("is-slow");
-
-    speedEl.classList.add("is-ping");
-    window.setTimeout(function () {
-      if (speedEl) speedEl.classList.remove("is-ping");
-    }, 650);
-  }
-
-  function initNavTiming() {
-    try {
-      if (!speedValueEl || !window.performance) return;
-      var nav = performance.getEntriesByType && performance.getEntriesByType("navigation");
-      if (nav && nav[0] && typeof nav[0].duration === "number") {
-        setSpeed(nav[0].duration);
-        return;
-      }
-      if (performance.timing) {
-        var t = performance.timing;
-        var dur = (t.loadEventEnd || t.domComplete || Date.now()) - t.navigationStart;
-        if (dur > 0) setSpeed(dur);
-      }
-    } catch (_) {}
-  }
-
   function onBeforeRequest() {
     root.classList.add("mf-htmx-loading");
     clearTimeout(progressResetTimer);
     setProgress(0.06, 1);
-    htmxT0 = (window.performance && performance.now) ? performance.now() : Date.now();
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         setProgress(0.42, 1);
@@ -64,10 +28,6 @@
   function onAfterRequest() {
     setProgress(1, 1);
     root.classList.remove("mf-htmx-loading");
-    if (speedValueEl) {
-      var t1 = (window.performance && performance.now) ? performance.now() : Date.now();
-      if (htmxT0) setSpeed(t1 - htmxT0);
-    }
     progressResetTimer = setTimeout(function () {
       setProgress(0, 0);
     }, 280);
@@ -76,11 +36,6 @@
   document.body.addEventListener("htmx:beforeRequest", onBeforeRequest);
   document.body.addEventListener("htmx:afterRequest", onAfterRequest);
   document.body.addEventListener("htmx:error", onAfterRequest);
-
-  // Initial page load speed (once)
-  window.addEventListener("load", function () {
-    window.setTimeout(initNavTiming, 0);
-  });
 
   // Logout confirmation (covers all logout links)
   document.addEventListener("click", function (e) {

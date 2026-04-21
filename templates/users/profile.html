@@ -47,7 +47,7 @@
                     <h1 class="mf-soul-handle inline-flex items-center flex-wrap gap-1 {% if profile_user.first_name or profile_user.last_name %}mf-soul-handle--sub{% endif %}">
                         <span class="mf-soul-handle__at">@</span><span class="mf-soul-handle__name">{{ profile_user.username }}</span>
                         {% if profile_user.is_verified %}
-                        <span class="mf-verify-ico" title="Tasdiqlangan"><i class="bi bi-patch-check-fill" aria-hidden="true"></i></span>
+                        {% include "includes/verified_badge.html" %}
                         {% endif %}
                     </h1>
 
@@ -81,7 +81,7 @@
                         </form>
                         {% elif yaqin_state == 'none' %}
                         <form method="post" style="display:inline">{% csrf_token %}
-                            <button type="submit" name="action" value="yaqin_request" class="mf-pill-btn mf-pill-btn--primary">Yaqinlashish</button>
+                            <button type="submit" name="action" value="yaqin_request" class="mf-pill-btn mf-pill-btn--primary">Ulanish</button>
                         </form>
                         {% endif %}
                     </div>

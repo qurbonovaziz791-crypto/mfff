@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %} | Hissiyot yuklash{% endblock %}
+{% block title %} | Yangi post{% endblock %}
 
 {% block content %}
 <div class="hy-form-header">
     <div class="hy-form-header__inner">
         <a href="{% url 'profile' username=user.username %}" aria-label="Orqaga">{% include "includes/hybrid_icon.html" with name="reply" %}</a>
-        <h1 class="hy-form-header__title">Hissiyot yuklash</h1>
+        <h1 class="hy-form-header__title">{% if is_edit %}Postni tahrirlash{% else %}Yangi post{% endif %}</h1>
         <span style="width:34px" aria-hidden="true"></span>
     </div>
 </div>
@@ -23,7 +23,7 @@
         {% endif %}
 
         <div class="hy-form-group">
-            <label class="hy-form-label" for="id_title">Mavzu</label>
+            <label class="hy-form-label" for="id_title">Sarlavha</label>
             {{ form.title }}
             {% if form.title.errors %}<div class="hy-field-error">{{ form.title.errors }}</div>{% endif %}
         </div>
@@ -50,7 +50,7 @@
 
         <div class="hy-form-group hy-form-row2">
             <div>
-                <label class="hy-form-label" for="id_hashtag">Hashtag</label>
+                <label class="hy-form-label" for="id_hashtag">Teg</label>
                 {{ form.hashtag }}
                 {% if form.hashtag.errors %}<div class="hy-field-error">{{ form.hashtag.errors }}</div>{% endif %}
             </div>
@@ -63,8 +63,7 @@
 
         {% if not is_edit %}
         <div class="hy-form-group">
-            <span class="hy-form-label">Hammualliflar (yaqinlardan, 3 tagacha)</span>
-            <div class="hy-helptext">Tanlanganlar bildirishnoma orqali tasdiqlaguncha profilingizda ko‘rinmaydi.</div>
+            <span class="hy-form-label">Hammualliflar</span>
             {{ form.collaborators }}
             {% if form.collaborators.errors %}<div class="hy-field-error">{{ form.collaborators.errors }}</div>{% endif %}
         </div>
@@ -80,8 +79,8 @@
         </div>
 
         <button type="submit" class="hy-btn-primary-lg" onclick="document.getElementById('compose-action').value='{% if is_edit %}update{% else %}create{% endif %}'">{% if is_edit %}Saqlash{% else %}Nashr{% endif %}</button>
-        <a href="{% url 'profile' username=user.username %}" class="hy-btn-danger-outline" style="border-color:var(--hy-border);background:var(--hy-bg-secondary);color:var(--hy-text);margin-top:10px">Bekor qilish</a>
-        <button type="submit" class="hy-btn-danger-outline" style="margin-top:10px" onclick="document.getElementById('compose-action').value='{% if is_edit %}draft_update{% else %}draft{% endif %}'">Qoralama</button>
+        <button type="submit" class="hy-btn-danger-outline" style="margin-top:10px;border-color:rgba(0,149,246,0.22);background:rgba(0,149,246,0.06);color:#0057d8" onclick="document.getElementById('compose-action').value='{% if is_edit %}draft_update{% else %}draft{% endif %}'">Qoralama</button>
+        <a href="{% url 'profile' username=user.username %}" class="hy-btn-danger-outline" style="border-color:var(--hy-border);background:transparent;color:var(--hy-text-muted);margin-top:10px">Bekor</a>
     </form>
 </div>
 {% endblock %}
