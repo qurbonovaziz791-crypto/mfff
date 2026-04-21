@@ -158,6 +158,8 @@ class Notification(models.Model):
         YAQIN_REQUEST = "yaqin_request", "Yaqinlik so‘rovi"
         COLLAB_INVITE = "collab_invite", "Postga ulashish"
         DM_MESSAGE = "dm_message", "Shaxsiy xabar"
+        COMMENT = "comment", "Izoh"
+        NEW_POST = "new_post", "Yangi post"
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="notifications", db_index=True

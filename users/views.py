@@ -1478,6 +1478,28 @@ def post_detail_view(request, username, post_id):
                     author=request.user,
                     body=body,
                 )
+                # Notify post owner via in-app + bot
+                if request.user.pk != profile_user.pk:
+                    try:
+                        user_tasks.create_notification.delay(
+                            user_id=int(profile_user.pk),
+                            kind=str(Notification.Kind.COMMENT),
+                            payload={
+                                "from_username": request.user.username,
+                                "post_owner_username": profile_user.username,
+                                "post_id": int(pid),
+                            },
+                        )
+                    except Exception:
+                        Notification.objects.create(
+                            user=profile_user,
+                            kind=Notification.Kind.COMMENT,
+                            payload={
+                                "from_username": request.user.username,
+                                "post_owner_username": profile_user.username,
+                                "post_id": int(pid),
+                            },
+                        )
             return redirect("post_detail", username=username, post_id=pid)
 
     if request.user.is_authenticated:
