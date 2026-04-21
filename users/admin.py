@@ -78,6 +78,44 @@ class MyUserAdmin(UserAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
 
+    actions = [
+        "bulk_make_verified",
+        "bulk_remove_verified",
+        "bulk_activate",
+        "bulk_deactivate",
+    ]
+
+    @admin.action(description="Tanlanganlarga galochka berish (verified ON)")
+    def bulk_make_verified(self, request, queryset):
+        # update() signalni ishlatmaydi; shuning uchun save() bilan yuramiz (bot notif ham ketadi)
+        n = 0
+        for u in queryset.only("id", "is_verified").iterator():
+            if not u.is_verified:
+                u.is_verified = True
+                u.save(update_fields=["is_verified"])
+                n += 1
+        self.message_user(request, f"{n} ta user verified qilindi.")
+
+    @admin.action(description="Tanlanganlardan galochkani olish (verified OFF)")
+    def bulk_remove_verified(self, request, queryset):
+        n = 0
+        for u in queryset.only("id", "is_verified").iterator():
+            if u.is_verified:
+                u.is_verified = False
+                u.save(update_fields=["is_verified"])
+                n += 1
+        self.message_user(request, f"{n} ta userdan galochka olib tashlandi.")
+
+    @admin.action(description="Tanlanganlarni aktiv qilish (is_active ON)")
+    def bulk_activate(self, request, queryset):
+        n = queryset.update(is_active=True)
+        self.message_user(request, f"{n} ta user aktiv qilindi.")
+
+    @admin.action(description="Tanlanganlarni deaktiv qilish (is_active OFF)")
+    def bulk_deactivate(self, request, queryset):
+        n = queryset.update(is_active=False)
+        self.message_user(request, f"{n} ta user deaktiv qilindi.")
+
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

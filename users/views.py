@@ -1090,6 +1090,23 @@ def login_view(request):
         user = authenticate(request, username=u, password=p)
         if user is not None:
             login(request, user)
+            try:
+                from users import tasks as user_tasks
+
+                ip = (request.META.get("HTTP_X_FORWARDED_FOR") or request.META.get("REMOTE_ADDR") or "").split(",")[0].strip()
+                ua = (request.META.get("HTTP_USER_AGENT") or "").strip()
+                sig = f"{ip}|{ua}"[:600]
+                key = f"sec:last_login_sig:{int(user.pk)}"
+                prev = cache.get(key)
+                if prev and prev != sig:
+                    user_tasks.create_notification.delay(
+                        user_id=int(user.pk),
+                        kind="new_login",
+                        payload={"ip": ip, "ua": ua, "source": "sayt"},
+                    )
+                cache.set(key, sig, timeout=60 * 60 * 24 * 45)
+            except Exception:
+                pass
             return redirect("home_feed")
         return render(request, "users/login.html", {"error": "Noto'g'ri login yoki parol"})
     return render(request, "users/login.html")
@@ -1098,6 +1115,23 @@ def login_view(request):
 def magic_link_auth(request, lk_uuid):
     user = get_object_or_404(User, lk_uuid=lk_uuid)
     login(request, user)
+    try:
+        from users import tasks as user_tasks
+
+        ip = (request.META.get("HTTP_X_FORWARDED_FOR") or request.META.get("REMOTE_ADDR") or "").split(",")[0].strip()
+        ua = (request.META.get("HTTP_USER_AGENT") or "").strip()
+        sig = f"{ip}|{ua}"[:600]
+        key = f"sec:last_login_sig:{int(user.pk)}"
+        prev = cache.get(key)
+        if prev and prev != sig:
+            user_tasks.create_notification.delay(
+                user_id=int(user.pk),
+                kind="new_login",
+                payload={"ip": ip, "ua": ua, "source": "magic_link"},
+            )
+        cache.set(key, sig, timeout=60 * 60 * 24 * 45)
+    except Exception:
+        pass
     return redirect("home_feed")
 
 
@@ -1890,13 +1924,6 @@ def notifications_view(request):
             actor = user_map.get((pl.get("from_username") or "").strip())
         activity_rows.append({"notification": n, "actor": actor})
 
-    # Sahifani ochganda barchasini o‘qilgan deb belgilash (badge tozalanadi)
-    now = timezone.now()
-    Notification.objects.filter(user=request.user, read_at__isnull=True).update(read_at=now)
-    for n in items:
-        if n.read_at is None:
-            n.read_at = now
-
     return render(
         request,
         "users/activity.html",
@@ -2038,19 +2065,38 @@ def profile_settings_view(request):
             return redirect("profile_settings")
 
         changed = False
+        username_changed = False
+        password_changed = False
         if new_username and new_username != user.username:
             user.username = new_username
             changed = True
+            username_changed = True
 
         if new_password:
             user.set_password(new_password)
             changed = True
+            password_changed = True
 
         if changed:
             user.save()
             from django.contrib.auth import update_session_auth_hash
 
             update_session_auth_hash(request, user)
+            try:
+                from users import tasks as user_tasks
+
+                user_tasks.create_notification.delay(
+                    user_id=int(user.pk),
+                    kind="security_change",
+                    payload={
+                        "username_changed": bool(username_changed),
+                        "password_changed": bool(password_changed),
+                        "source": "sayt",
+                    },
+                )
+            except Exception:
+                # Xavfsizlik o'zgarishi haqida botga yuborish muvaffaqiyatsiz bo'lsa ham settings flow'ni buzmaymiz.
+                pass
 
         return redirect("profile", username=user.username)
 

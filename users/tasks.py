@@ -35,6 +35,34 @@ def _notif_to_text(n: Notification) -> str:
     kind = str(n.kind)
     nk = Notification.Kind
 
+    if kind == "security_change":
+        parts = []
+        if pl.get("username_changed"):
+            parts.append("username")
+        if pl.get("password_changed"):
+            parts.append("parol")
+        what = ", ".join(parts) if parts else "hisob sozlamalari"
+        where = (pl.get("source") or "sayt").strip()
+        return f"🔐 Xavfsizlik\n\n{what} o‘zgartirildi ({where}).".strip()
+
+    if kind == "verified_change":
+        status = "berildi ✅" if pl.get("is_verified") else "olib tashlandi"
+        return f"✅ Tasdiqlash\n\ngalochka {status}.".strip()
+
+    if kind == "new_login":
+        ip = (pl.get("ip") or "").strip()
+        ua = (pl.get("ua") or "").strip()
+        src = (pl.get("source") or "login").strip()
+        # UA uzun bo'lsa, telegrafda ko'rinadigan qilib qisqartiramiz.
+        if len(ua) > 180:
+            ua = ua[:180].rstrip() + "…"
+        lines = ["🆕 Yangi login", f"manba: {src}"]
+        if ip:
+            lines.append(f"IP: {ip}")
+        if ua:
+            lines.append(f"Qurilma: {ua}")
+        return "\n".join(lines).strip()
+
     if kind == nk.DM_MESSAGE:
         frm = (pl.get("from_username") or "").strip()
         preview = (pl.get("preview") or "").strip()
